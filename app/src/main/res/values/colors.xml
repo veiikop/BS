@@ -2,4 +2,14 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="colorPrimary">#FF69B4</color> <!-- Розовый акцент -->
+    <color name="colorBackground">#f1f4f5</color> <!-- Серый фон -->
+    <color name="colorText">#212121</color> <!-- Темный текст -->
+    <color name="colorError">#D32F2F</color> <!-- Красный для ошибок -->
+    <color name="colorButtonHover">#FF80AB</color> <!-- Светлее розовый при наведении -->
+    <color name="colorButtonPressed">#D81B60</color> <!-- Темнее розовый при нажатии -->
+    <color name="nav_item_active">#FF69B4</color> <!-- Активный цвет -->
+    <color name="nav_item_inactive">#757575</color> <!-- Неактивный цвет -->
+    <color name="gradientStart">#B0BEC5</color> <!-- Светлый серый -->
+    <color name="gradientEnd">#78909C</color> <!-- Тёмный серый -->
 </resources>

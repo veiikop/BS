@@ -1,3 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="android:background">@color/colorBackground</item>
+    </style>
+
+    <!-- Стиль для кнопок -->
+    <style name="CustomButton" parent="Widget.MaterialComponents.Button">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">60dp</item> <!-- Квадратная высота -->
+        <item name="android:backgroundTint">@color/colorPrimary</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="cornerRadius">12dp</item> <!-- Закругленные углы -->
+        <item name="android:stateListAnimator">@animator/button_state</item> <!-- Анимация состояния -->
+    </style>
 </resources>

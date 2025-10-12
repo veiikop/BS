@@ -1,4 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<set xmlns:android="http://schemas.android.com/apk/res/android">
-  
-</set>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <set>
+            <objectAnimator
+                android:propertyName="backgroundTint"
+                android:valueTo="@color/colorButtonPressed"
+                android:valueType="colorType"
+                android:duration="100"/>
+        </set>
+    </item>
+    <item android:state_hovered="true">
+        <set>
+            <objectAnimator
+                android:propertyName="backgroundTint"
+                android:valueTo="@color/colorButtonHover"
+                android:valueType="colorType"
+                android:duration="100"/>
+        </set>
+    </item>
+    <item>
+        <set>
+            <objectAnimator
+                android:propertyName="backgroundTint"
+                android:valueTo="@color/colorPrimary"
+                android:valueType="colorType"
+                android:duration="100"/>
+        </set>
+    </item>
+</selector>
