@@ -1,68 +1,111 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
     android:background="@color/colorBackground">
 
-    <!-- Фильтры -->
+    <!-- Заголовок -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Каталог услуг"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@color/colorText"
+        android:gravity="center"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Поиск по имени -->
+    <EditText
+        android:id="@+id/edit_search"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:hint="Поиск по названию услуги"
+        android:background="@drawable/custom_input"
+        android:drawableStart="@drawable/ic_search"
+        android:drawablePadding="12dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:textColor="@color/colorText"
+        android:textColorHint="@color/colorText"
+        android:textSize="16sp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Фильтры: категория и цена в горизонтальном layout -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginBottom="16dp"
-        android:layout_marginTop="20dp">
+        android:layout_marginBottom="16dp">
 
-        <!-- Фильтр по категории -->
         <Spinner
             android:id="@+id/spinner_category"
             android:layout_width="0dp"
-            android:layout_height="48dp"
-        android:layout_weight="1"
-        android:padding="12dp"
-        android:background="@color/colorPrimary"
-        android:textColor="@android:color/white"
-        android:minHeight="48dp" />
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:background="@drawable/custom_input"
+            android:padding="12dp" />
 
-        <!-- Диапазон цен -->
         <EditText
             android:id="@+id/edit_price_from"
             android:layout_width="0dp"
-            android:layout_height="48dp"
-        android:layout_weight="1"
-        android:hint="От (руб)"
-        android:inputType="numberDecimal"
-        android:padding="12dp"
-        android:layout_marginStart="8dp"
-        android:minHeight="48dp" />
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:hint="Цена от"
+            android:inputType="numberDecimal"
+            android:background="@drawable/custom_input"
+            android:drawableStart="@drawable/ic_ruble"
+            android:drawablePadding="8dp"
+            android:padding="12dp"
+            android:textSize="16sp"
+            android:layout_marginStart="8dp" />
 
         <EditText
             android:id="@+id/edit_price_to"
             android:layout_width="0dp"
-            android:layout_height="48dp"
-        android:layout_weight="1"
-        android:hint="До (руб)"
-        android:inputType="numberDecimal"
-        android:padding="12dp"
-        android:layout_marginStart="8dp"
-        android:minHeight="48dp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_filter"
-            style="@style/CustomButton"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-        android:text="Фильтр"
-        android:layout_marginStart="8dp"
-        android:minHeight="48dp" />
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:hint="Цена до"
+            android:inputType="numberDecimal"
+            android:background="@drawable/custom_input"
+            android:drawableStart="@drawable/ic_ruble"
+            android:drawablePadding="8dp"
+            android:padding="12dp"
+            android:textSize="16sp"
+            android:layout_marginStart="8dp" />
     </LinearLayout>
 
-    <!-- Список услуг -->
+    <!-- Кнопка фильтра -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/button_filter"
+        style="@style/CustomButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Применить фильтр"
+        android:layout_marginBottom="16dp" />
+
+    <!-- RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view_services"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingBottom="80dp" /> <!-- Отступ для BottomNav -->
+
+    <!-- Индикатор пустого списка -->
+    <TextView
+        android:id="@+id/text_empty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Нет услуг по вашему запросу"
+        android:textSize="18sp"
+        android:textColor="@color/colorError"
+        android:gravity="center"
+        android:visibility="gone"
+        android:layout_marginTop="32dp" />
 
 </LinearLayout>

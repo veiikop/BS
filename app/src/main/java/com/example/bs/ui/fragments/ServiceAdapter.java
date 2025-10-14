@@ -3,10 +3,12 @@ package com.example.bs.ui.fragments;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.bs.R;
+import com.example.bs.db.CategoryDao;
 import com.example.bs.model.Service;
 
 import java.util.List;
@@ -17,9 +19,11 @@ import java.util.List;
 public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ServiceViewHolder> {
 
     private List<Service> services;
+    private CategoryDao categoryDao;
 
-    public ServiceAdapter(List<Service> services) {
+    public ServiceAdapter(List<Service> services, CategoryDao categoryDao) {
         this.services = services;
+        this.categoryDao = categoryDao;
     }
 
     @NonNull
@@ -37,6 +41,9 @@ public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ServiceV
         holder.textPrice.setText(String.format("%.2f руб", service.getPrice()));
         holder.textDuration.setText(String.format("%d мин", service.getDuration()));
 
+        // Отображение категории
+        String categoryName = categoryDao.getCategoryById(service.getCategoryId()).getName();
+        holder.textCategory.setText(categoryName);
     }
 
     @Override
@@ -50,11 +57,13 @@ public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ServiceV
     }
 
     static class ServiceViewHolder extends RecyclerView.ViewHolder {
-        TextView textName, textPrice, textDuration;
+        ImageView imageService;
+        TextView textName, textCategory, textPrice, textDuration;
 
         ServiceViewHolder(@NonNull View itemView) {
             super(itemView);
             textName = itemView.findViewById(R.id.text_service_name);
+            textCategory = itemView.findViewById(R.id.text_service_category);
             textPrice = itemView.findViewById(R.id.text_service_price);
             textDuration = itemView.findViewById(R.id.text_service_duration);
         }

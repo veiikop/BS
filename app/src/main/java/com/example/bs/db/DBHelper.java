@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class DBHelper extends SQLiteOpenHelper {
     private static final String DB_NAME = "bsmobile.db";
-    private static final int DB_VERSION = 2;
+    private static final int DB_VERSION = 3;
     private static DBHelper instance;
 
     private DBHelper(Context context) {
@@ -83,18 +83,24 @@ public class DBHelper extends SQLiteOpenHelper {
         db.execSQL("INSERT INTO categories (name) VALUES ('стрижка');");
         db.execSQL("INSERT INTO categories (name) VALUES ('окрашивание волос');");
         db.execSQL("INSERT INTO categories (name) VALUES ('наращивание ресниц');");
+        db.execSQL("INSERT INTO categories (name) VALUES ('массаж');");
 
-        // Мастера (specialty соответствует имени категории)
+        // Мастера
         db.execSQL("INSERT INTO masters (name, surname, specialty) VALUES ('Юлия', 'Куликова', 'макияж');");
         db.execSQL("INSERT INTO masters (name, surname, specialty) VALUES ('Валерия', 'Золотова', 'макияж');");
         db.execSQL("INSERT INTO masters (name, surname, specialty) VALUES ('Антон', 'Зинков', 'стрижка');");
         db.execSQL("INSERT INTO masters (name, surname, specialty) VALUES ('Вероника', 'Рамос', 'маникюр');");
+        db.execSQL("INSERT INTO masters (name, surname, specialty) VALUES ('Ольга', 'Петрова', 'массаж');");
 
-        // Услуги (с category_id, предполагая id категорий: 1=макияж, 2=маникюр и т.д.)
+        // Услуги
         db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Классический макияж', 1, 1500, 45);");
         db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Маникюр гель-лак', 2, 1000, 60);");
         db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Педикюр', 3, 1200, 75);");
         db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Стрижка мужская', 4, 800, 30);");
+        db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Окрашивание корней', 5, 2000, 90);");
+        db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Наращивание ресниц 2D', 6, 2500, 120);");
+        db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Массаж спины', 7, 1800, 60);");
+        db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Массаж шеи', 7, 1200, 30);");
     }
 
     @Override
