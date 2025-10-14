@@ -1,19 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@color/colorBackground"
-    tools:context=".ui.fragments.CatalogFragment">
+    android:background="@color/colorBackground">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <!-- Фильтры -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Каталог услуг"
-        android:textSize="18sp"
-        android:textColor="@color/colorText"
-        android:layout_gravity="center" />
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp"
+        android:layout_marginTop="20dp">
 
-</FrameLayout>
+        <!-- Фильтр по категории -->
+        <Spinner
+            android:id="@+id/spinner_category"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+        android:layout_weight="1"
+        android:padding="12dp"
+        android:background="@color/colorPrimary"
+        android:textColor="@android:color/white"
+        android:minHeight="48dp" />
+
+        <!-- Диапазон цен -->
+        <EditText
+            android:id="@+id/edit_price_from"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+        android:layout_weight="1"
+        android:hint="От (руб)"
+        android:inputType="numberDecimal"
+        android:padding="12dp"
+        android:layout_marginStart="8dp"
+        android:minHeight="48dp" />
+
+        <EditText
+            android:id="@+id/edit_price_to"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+        android:layout_weight="1"
+        android:hint="До (руб)"
+        android:inputType="numberDecimal"
+        android:padding="12dp"
+        android:layout_marginStart="8dp"
+        android:minHeight="48dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_filter"
+            style="@style/CustomButton"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+        android:text="Фильтр"
+        android:layout_marginStart="8dp"
+        android:minHeight="48dp" />
+    </LinearLayout>
+
+    <!-- Список услуг -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view_services"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+</LinearLayout>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="service_categories">
+        <item>Все</item>
+        <item>Маникюр</item>
+        <item>Педикюр</item>
+        <item>Стрижка</item>
+        <item>Окрашивание волос</item>
+        <item>Наращивание ресниц</item>
+        <item>Макияж</item>
+    </string-array>
+</resources>

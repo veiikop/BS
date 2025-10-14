@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class DBHelper extends SQLiteOpenHelper {
     private static final String DB_NAME = "bsmobile.db";
-    private static final int DB_VERSION = 1;
+    private static final int DB_VERSION = 2;
     private static DBHelper instance;
 
     private DBHelper(Context context) {

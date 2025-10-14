@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * DAO для операций с категориями услуг (паттерн Facade).
+ * DAO для операций с категориями.
  */
 public class CategoryDao {
     private DBHelper dbHelper;
@@ -30,25 +30,6 @@ public class CategoryDao {
         ContentValues values = new ContentValues();
         values.put("name", category.getName());
         return db.insert("categories", null, values);
-    }
-
-    /**
-     * Получает категорию по ID.
-     * @param id ID категории
-     * @return Category или null
-     */
-    public Category getCategoryById(long id) {
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Cursor cursor = db.query("categories", null, "id=?", new String[]{String.valueOf(id)}, null, null, null);
-        Category category = null;
-        if (cursor.moveToFirst()) {
-            category = new Category(
-                    cursor.getLong(cursor.getColumnIndexOrThrow("id")),
-                    cursor.getString(cursor.getColumnIndexOrThrow("name"))
-            );
-        }
-        cursor.close();
-        return category;
     }
 
     /**
@@ -73,24 +54,21 @@ public class CategoryDao {
     }
 
     /**
-     * Обновляет категорию.
-     * @param category Объект Category
-     * @return Количество обновленных строк
-     */
-    public int updateCategory(Category category) {
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("name", category.getName());
-        return db.update("categories", values, "id=?", new String[]{String.valueOf(category.getId())});
-    }
-
-    /**
-     * Удаляет категорию.
+     * Получает категорию по ID.
      * @param id ID категории
-     * @return Количество удаленных строк
+     * @return Category или null
      */
-    public int deleteCategory(long id) {
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        return db.delete("categories", "id=?", new String[]{String.valueOf(id)});
+    public Category getCategoryById(long id) {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor = db.query("categories", null, "id=?", new String[]{String.valueOf(id)}, null, null, null);
+        Category category = null;
+        if (cursor.moveToFirst()) {
+            category = new Category(
+                    cursor.getLong(cursor.getColumnIndexOrThrow("id")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("name"))
+            );
+        }
+        cursor.close();
+        return category;
     }
 }

@@ -34,7 +34,7 @@ public class ImageSliderAdapter extends RecyclerView.Adapter<ImageSliderAdapter.
 
     @Override
     public int getItemCount() {
-        return Integer.MAX_VALUE; // Бесконечная прокрутка
+        return Integer.MAX_VALUE; // бесконечная прокрутка
     }
 
     static class SliderViewHolder extends RecyclerView.ViewHolder {
