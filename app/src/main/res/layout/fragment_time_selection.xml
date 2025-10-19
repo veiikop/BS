@@ -78,7 +78,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Далее →"
-            android:enabled="false"
             android:textColor="@color/white"
             app:backgroundTint="@color/colorPrimary" />
 

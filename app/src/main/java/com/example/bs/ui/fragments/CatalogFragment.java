@@ -29,10 +29,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-/**
- * Фрагмент каталога услуг с фильтрами и поиском.
- * Загрузка данных выполняется в фоновом потоке для оптимизации.
- */
 public class CatalogFragment extends Fragment {
 
     private RecyclerView recyclerView;
@@ -42,6 +38,7 @@ public class CatalogFragment extends Fragment {
     private List<Service> allServices;
     private List<Service> filteredServices;
     private TextView textEmpty;
+    private boolean isSpinnerInitialized = false; // Флаг инициализации Spinner
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -50,13 +47,11 @@ public class CatalogFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_catalog, container, false);
 
-        // Инициализация DAO
         serviceDao = new ServiceDao(requireContext());
         categoryDao = new CategoryDao(requireContext());
         allServices = new ArrayList<>();
         filteredServices = new ArrayList<>();
 
-        // Привязка элементов
         recyclerView = view.findViewById(R.id.recycler_view_services);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         adapter = new ServiceAdapter(filteredServices, categoryDao, requireContext());
@@ -69,42 +64,42 @@ public class CatalogFragment extends Fragment {
         MaterialButton buttonFilter = view.findViewById(R.id.button_filter);
         textEmpty = view.findViewById(R.id.text_empty);
 
-        // Загрузка категорий и услуг в фоновом потоке
         loadInitialData(spinnerCategory);
 
-        // Обработчики
+        // Отключаем TextWatcher до инициализации Spinner
         editSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterBySearch(s.toString(), spinnerCategory.getSelectedItemPosition(),
-                        editPriceFrom.getText().toString(), editPriceTo.getText().toString());
+                if (isSpinnerInitialized) {
+                    filterBySearch(s.toString(), spinnerCategory.getSelectedItemPosition(),
+                            editPriceFrom.getText().toString(), editPriceTo.getText().toString());
+                }
             }
             @Override
             public void afterTextChanged(Editable s) {}
         });
 
-        buttonFilter.setOnClickListener(v -> applyFilter(
-                spinnerCategory.getSelectedItemPosition(),
-                editPriceFrom.getText().toString(),
-                editPriceTo.getText().toString()
-        ));
+        buttonFilter.setOnClickListener(v -> {
+            if (isSpinnerInitialized) {
+                applyFilter(
+                        spinnerCategory.getSelectedItemPosition(),
+                        editPriceFrom.getText().toString(),
+                        editPriceTo.getText().toString()
+                );
+            }
+        });
 
         return view;
     }
 
-    /**
-     * Загружает начальные данные (услуги и категории) в фоновом потоке.
-     * @param spinnerCategory Спиннер для категорий
-     */
     private void loadInitialData(Spinner spinnerCategory) {
         executor.execute(() -> {
             List<Category> categories = categoryDao.getAllCategories();
             allServices = serviceDao.getAllServices();
 
             mainHandler.post(() -> {
-                // Настройка Spinner
                 List<String> categoryNames = new ArrayList<>();
                 categoryNames.add("Все");
                 for (Category category : categories) {
@@ -114,8 +109,8 @@ public class CatalogFragment extends Fragment {
                         requireContext(), android.R.layout.simple_spinner_item, categoryNames);
                 adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 spinnerCategory.setAdapter(adapterSpinner);
+                isSpinnerInitialized = true; // Устанавливаем флаг после инициализации
 
-                // Инициализация с начальными данными
                 filteredServices.clear();
                 filteredServices.addAll(allServices);
                 updateUI();
@@ -123,12 +118,6 @@ public class CatalogFragment extends Fragment {
         });
     }
 
-    /**
-     * Применяет фильтры по категории и цене.
-     * @param selectedPosition Позиция в спиннере категорий
-     * @param priceFromStr Цена от
-     * @param priceToStr Цена до
-     */
     private void applyFilter(int selectedPosition, String priceFromStr, String priceToStr) {
         executor.execute(() -> {
             try {
@@ -136,7 +125,20 @@ public class CatalogFragment extends Fragment {
                 double priceFrom = priceFromStr.isEmpty() ? 0.0 : Double.parseDouble(priceFromStr);
                 double priceTo = priceToStr.isEmpty() ? Double.MAX_VALUE : Double.parseDouble(priceToStr);
 
-                long categoryId = selectedPosition == 0 ? -1 : categoryDao.getAllCategories().get(selectedPosition - 1).getId();
+                List<Category> categories = categoryDao.getAllCategories();
+                long categoryId = -1;
+                // Проверяем, что selectedPosition валиден
+                if (selectedPosition > 0 && selectedPosition - 1 < categories.size()) {
+                    categoryId = categories.get(selectedPosition - 1).getId();
+                } else if (selectedPosition < 0) {
+                    Log.w("CatalogFragment", "Invalid selectedPosition: " + selectedPosition);
+                    mainHandler.post(() -> {
+                        filteredServices.clear();
+                        filteredServices.addAll(allServices);
+                        updateUI();
+                    });
+                    return;
+                }
 
                 if (categoryId == -1) {
                     result.addAll(serviceDao.getServicesByPriceRange(priceFrom, priceTo));
@@ -158,28 +160,34 @@ public class CatalogFragment extends Fragment {
                     filteredServices.clear();
                     updateUI();
                 });
+            } catch (Exception e) {
+                Log.e("CatalogFragment", "Ошибка в applyFilter", e);
             }
         });
     }
 
-    /**
-     * Фильтрует услуги по поисковому запросу, категории и цене.
-     * @param searchText Поисковый запрос
-     * @param selectedPosition Позиция в спиннере
-     * @param priceFromStr Цена от
-     * @param priceToStr Цена до
-     */
     private void filterBySearch(String searchText, int selectedPosition, String priceFromStr, String priceToStr) {
         executor.execute(() -> {
             try {
-                // Создаем начальный список для результатов
                 List<Service> result = new ArrayList<>();
                 double priceFrom = priceFromStr.isEmpty() ? 0.0 : Double.parseDouble(priceFromStr);
                 double priceTo = priceToStr.isEmpty() ? Double.MAX_VALUE : Double.parseDouble(priceToStr);
 
-                long categoryId = selectedPosition == 0 ? -1 : categoryDao.getAllCategories().get(selectedPosition - 1).getId();
+                List<Category> categories = categoryDao.getAllCategories();
+                long categoryId = -1;
+                // Проверяем, что selectedPosition валиден
+                if (selectedPosition > 0 && selectedPosition - 1 < categories.size()) {
+                    categoryId = categories.get(selectedPosition - 1).getId();
+                } else if (selectedPosition < 0) {
+                    Log.w("CatalogFragment", "Invalid selectedPosition: " + selectedPosition);
+                    mainHandler.post(() -> {
+                        filteredServices.clear();
+                        filteredServices.addAll(allServices);
+                        updateUI();
+                    });
+                    return;
+                }
 
-                // Фильтрация по категории и цене
                 if (categoryId == -1) {
                     result.addAll(serviceDao.getServicesByPriceRange(priceFrom, priceTo));
                 } else {
@@ -189,14 +197,12 @@ public class CatalogFragment extends Fragment {
                             .collect(Collectors.toList()));
                 }
 
-                // Фильтрация по поисковому запросу (создаем новый список вместо изменения result)
                 final List<Service> filteredResult = searchText.isEmpty()
                         ? result
                         : result.stream()
                         .filter(service -> service.getName().toLowerCase().contains(searchText.toLowerCase()))
                         .collect(Collectors.toList());
 
-                // Обновление UI в главном потоке
                 mainHandler.post(() -> {
                     filteredServices.clear();
                     filteredServices.addAll(filteredResult);
@@ -208,24 +214,21 @@ public class CatalogFragment extends Fragment {
                     filteredServices.clear();
                     updateUI();
                 });
+            } catch (Exception e) {
+                Log.e("CatalogFragment", "Ошибка в filterBySearch", e);
             }
         });
     }
 
-    /**
-     * Обновляет UI с отфильтрованными услугами.
-     */
     private void updateUI() {
-        if (adapter != null) {
-            adapter.updateList(filteredServices);
-            textEmpty.setVisibility(filteredServices.isEmpty() ? View.VISIBLE : View.GONE);
-            Log.d("CatalogFragment", "Filtered services count: " + filteredServices.size());
-        }
+        adapter.notifyDataSetChanged();
+        Log.d("CatalogFragment", "Filtered services count: " + filteredServices.size());
+        textEmpty.setVisibility(filteredServices.isEmpty() ? View.VISIBLE : View.GONE);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        executor.shutdown(); // Очищаем пул потоков
+        executor.shutdown();
     }
 }

@@ -33,20 +33,26 @@ public class MainActivity extends AppCompatActivity {
         // Обработчик переключения
         navView.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;
+            String tag = null;
             int itemId = item.getItemId();
             if (itemId == R.id.nav_home) {
                 selectedFragment = new HomeFragment();
+                tag = "home";
             } else if (itemId == R.id.nav_catalog) {
                 selectedFragment = new CatalogFragment();
+                tag = "catalog";
             } else if (itemId == R.id.nav_appointments) {
                 selectedFragment = new AppointmentsFragment();
+                tag = "appointments";
             } else if (itemId == R.id.nav_profile) {
                 selectedFragment = new ProfileFragment();
+                tag = "profile";
             }
 
             if (selectedFragment != null) {
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, selectedFragment)
+                        .replace(R.id.fragment_container, selectedFragment, tag)
+                        .addToBackStack(tag)
                         .commit();
                 return true;
             }

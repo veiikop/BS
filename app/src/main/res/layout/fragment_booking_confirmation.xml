@@ -107,7 +107,7 @@
             android:backgroundTint="@color/colorPrimary"
             android:layout_marginBottom="16dp" />
 
-        <!-- Кнопка отмены -->
+        <!-- Кнопка "Вернуться в каталог" -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/button_cancel"
             style="@style/CustomButton"

@@ -1,5 +1,6 @@
 package com.example.bs.ui.fragments;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -68,8 +69,15 @@ public class BookingConfirmationFragment extends Fragment {
         // Обработчик кнопки "Назад"
         backButton.setOnClickListener(v -> requireActivity().getSupportFragmentManager().popBackStack());
 
-        // Обработчик кнопки "Отмена"
-        cancelButton.setOnClickListener(v -> requireActivity().getSupportFragmentManager().popBackStack("catalog", 0));
+        // Обработчик кнопки "Вернуться в каталог"
+        cancelButton.setOnClickListener(v -> {
+            new AlertDialog.Builder(requireContext())
+                    .setTitle("Вернуться в каталог?")
+                    .setMessage("Все данные записи будут сброшены.")
+                    .setPositiveButton("Да", (dialog, which) -> requireActivity().getSupportFragmentManager().popBackStack("catalog", 0))
+                    .setNegativeButton("Нет", null)
+                    .show();
+        });
     }
 
     /**
