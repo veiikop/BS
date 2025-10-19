@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="24dp"
+    android:background="@color/colorBackground">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Логотип -->
+        <ImageView
+            android:id="@+id/image_logo"
+            android:layout_width="wrap_content"
+            android:layout_height="265dp"
+            android:layout_gravity="center"
+            android:contentDescription="Логотип салона"
+            android:src="@drawable/logo" />
+
+        <!-- Заголовок -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Выберите мастера"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorText"
+            android:gravity="center"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Информация о дате и времени -->
+        <TextView
+            android:id="@+id/text_selection_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="16sp"
+            android:textColor="@color/colorText"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Текст ошибки или пустой список -->
+        <TextView
+            android:id="@+id/text_error"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/colorError"
+            android:textSize="16sp"
+            android:visibility="gone"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Контейнер для мастеров -->
+        <LinearLayout
+            android:id="@+id/layout_masters"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Кнопка назад -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_back"
+            style="@style/CustomButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Назад"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/colorPrimary"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Кнопка подтверждения -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_confirm"
+            style="@style/CustomButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Подтвердить выбор"
+            android:enabled="false"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/colorPrimary" />
+
+    </LinearLayout>
+</ScrollView>

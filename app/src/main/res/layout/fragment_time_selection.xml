@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="24dp"
+    android:background="@color/colorBackground">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Логотип -->
+        <ImageView
+            android:id="@+id/image_logo"
+            android:layout_width="wrap_content"
+            android:layout_height="265dp"
+            android:layout_gravity="center"
+            android:contentDescription="Логотип салона"
+            android:src="@drawable/logo" />
+
+        <!-- Заголовок -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Выберите время"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorText"
+            android:gravity="center"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Выбранная дата -->
+        <TextView
+            android:id="@+id/text_selected_date"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Дата:"
+            android:textSize="18sp"
+            android:textColor="@color/colorText"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Текст ошибки или пустой список -->
+        <TextView
+            android:id="@+id/text_error"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/colorError"
+            android:textSize="16sp"
+            android:visibility="gone"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Сетка временных слотов -->
+        <androidx.gridlayout.widget.GridLayout
+            android:id="@+id/layout_time_slots"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:columnCount="3"
+            app:orientation="horizontal"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Кнопка назад -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_back"
+            style="@style/CustomButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Назад"
+            android:textColor="@color/white"
+            app:backgroundTint="@color/colorPrimary"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Кнопка далее -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_next"
+            style="@style/CustomButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Далее →"
+            android:enabled="false"
+            android:textColor="@color/white"
+            app:backgroundTint="@color/colorPrimary" />
+
+    </LinearLayout>
+</ScrollView>

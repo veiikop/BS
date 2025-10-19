@@ -3,13 +3,18 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/colorBackground">
+    android:background="@color/colorBackground"
+    android:padding="35dp">
 
-    <!-- Слайдер фотографий -->
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/view_pager_slider"
+    <!-- Заголовок -->
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="wrap_content"
+        android:text="Главная"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@color/colorText"
+        android:gravity="center"
         android:layout_marginBottom="16dp" />
 
     <!-- Карточка с информацией -->
@@ -45,6 +50,13 @@
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>
+
+    <!-- Слайдер фотографий -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/view_pager_slider"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginBottom="20dp" />
 
     <!-- Кнопка "Связаться с нами" -->
     <com.google.android.material.button.MaterialButton

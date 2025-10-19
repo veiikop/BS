@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class DBHelper extends SQLiteOpenHelper {
     private static final String DB_NAME = "bsmobile.db";
-    private static final int DB_VERSION = 3;
+    private static final int DB_VERSION = 6;
     private static DBHelper instance;
 
     private DBHelper(Context context) {
@@ -30,19 +30,19 @@ public class DBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        // Создание таблицы categories (категории услуг)
+        // Создание таблицы categories
         db.execSQL("CREATE TABLE categories (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "name TEXT NOT NULL UNIQUE);");
 
-        // Создание таблицы masters (мастера)
+        // Создание таблицы masters
         db.execSQL("CREATE TABLE masters (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "name TEXT NOT NULL, " +
                 "surname TEXT NOT NULL, " +
                 "specialty TEXT);");
 
-        // Создание таблицы users (без изменений)
+        // Создание таблицы users
         db.execSQL("CREATE TABLE users (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "login TEXT UNIQUE NOT NULL, " +
@@ -53,7 +53,7 @@ public class DBHelper extends SQLiteOpenHelper {
                 "phone TEXT, " +
                 "gender TEXT);");
 
-        // Создание таблицы services (с category_id вместо type)
+        // Создание таблицы services
         db.execSQL("CREATE TABLE services (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "name TEXT NOT NULL, " +
@@ -62,7 +62,7 @@ public class DBHelper extends SQLiteOpenHelper {
                 "duration INTEGER NOT NULL, " +
                 "FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE);");
 
-        // Создание таблицы appointments (с master_id)
+        // Создание таблицы appointments
         db.execSQL("CREATE TABLE appointments (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "user_id INTEGER NOT NULL, " +
@@ -83,24 +83,47 @@ public class DBHelper extends SQLiteOpenHelper {
         db.execSQL("INSERT INTO categories (name) VALUES ('стрижка');");
         db.execSQL("INSERT INTO categories (name) VALUES ('окрашивание волос');");
         db.execSQL("INSERT INTO categories (name) VALUES ('наращивание ресниц');");
+        db.execSQL("INSERT INTO categories (name) VALUES ('ламинирование ресниц');");
         db.execSQL("INSERT INTO categories (name) VALUES ('массаж');");
+        db.execSQL("INSERT INTO categories (name) VALUES ('брови');");
+
 
         // Мастера
         db.execSQL("INSERT INTO masters (name, surname, specialty) VALUES ('Юлия', 'Куликова', 'макияж');");
         db.execSQL("INSERT INTO masters (name, surname, specialty) VALUES ('Валерия', 'Золотова', 'макияж');");
         db.execSQL("INSERT INTO masters (name, surname, specialty) VALUES ('Антон', 'Зинков', 'стрижка');");
         db.execSQL("INSERT INTO masters (name, surname, specialty) VALUES ('Вероника', 'Рамос', 'маникюр');");
+        db.execSQL("INSERT INTO masters (name, surname, specialty) VALUES ('Екатерина', 'Фролова', 'маникюр');");
         db.execSQL("INSERT INTO masters (name, surname, specialty) VALUES ('Ольга', 'Петрова', 'массаж');");
+        db.execSQL("INSERT INTO masters (name, surname, specialty) VALUES ('Елена', 'Сулейманова', 'массаж');");
+        db.execSQL("INSERT INTO masters (name, surname, specialty) VALUES ('Анна', 'Кандыбина', 'массаж');");
+        db.execSQL("INSERT INTO masters (name, surname, specialty) VALUES ('Наталья', 'Громова', 'педикюр');");
+        db.execSQL("INSERT INTO masters (name, surname, specialty) VALUES ('Юлия', 'Салихова', 'педикюр');");
+        db.execSQL("INSERT INTO masters (name, surname, specialty) VALUES ('Сергей', 'Мерзликин', 'окрашивание волос');");
+        db.execSQL("INSERT INTO masters (name, surname, specialty) VALUES ('Ермолова', 'Анастасия', 'окрашивание волос');");
+        db.execSQL("INSERT INTO masters (name, surname, specialty) VALUES ('Персиянова', 'Эвелина', 'наращивание ресниц');");
+        db.execSQL("INSERT INTO masters (name, surname, specialty) VALUES ('Иманкулова', 'Оксана', 'ламинирование ресниц');");
+        db.execSQL("INSERT INTO masters (name, surname, specialty) VALUES ('Гусева', 'Светлана', 'брови');");
 
         // Услуги
         db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Классический макияж', 1, 1500, 45);");
         db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Маникюр гель-лак', 2, 1000, 60);");
-        db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Педикюр', 3, 1200, 75);");
+        db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Наращивание гель-лак', 2, 2000, 120);");
+        db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Гигиенический маникюр', 2, 500, 30);");
+        db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Педикюр гель-лак', 3, 1200, 75);");
+        db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Гигиенический педикюр', 3, 600, 40);");
         db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Стрижка мужская', 4, 800, 30);");
+        db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Стрижка женская', 4, 1000, 60);");
         db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Окрашивание корней', 5, 2000, 90);");
+        db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Окрашивание всей длины', 5, 3000, 120);");
+        db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Окрашивание техникой airtouch', 5, 5000, 160);");
         db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Наращивание ресниц 2D', 6, 2500, 120);");
-        db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Массаж спины', 7, 1800, 60);");
-        db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Массаж шеи', 7, 1200, 30);");
+        db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Наращивание ресниц 3D', 6, 2700, 120);");
+        db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Ламинирование ресниц', 7, 2000, 100);");
+        db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Массаж спины', 8, 1800, 60);");
+        db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Массаж шеи', 8, 1200, 30);");
+        db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Окрашивание бровей', 9, 800, 45);");
+        db.execSQL("INSERT INTO services (name, category_id, price, duration) VALUES ('Ламинирование бровей', 9, 1000, 45);");
     }
 
     @Override

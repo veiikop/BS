@@ -1,16 +1,18 @@
 package com.example.bs.ui.fragments;
 
+import android.content.Context;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.bs.R;
 import com.example.bs.db.CategoryDao;
 import com.example.bs.model.Service;
-
 import java.util.List;
 
 /**
@@ -20,10 +22,12 @@ public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ServiceV
 
     private List<Service> services;
     private CategoryDao categoryDao;
+    private Context context;
 
-    public ServiceAdapter(List<Service> services, CategoryDao categoryDao) {
+    public ServiceAdapter(List<Service> services, CategoryDao categoryDao, Context context) {
         this.services = services;
         this.categoryDao = categoryDao;
+        this.context = context;
     }
 
     @NonNull
@@ -44,6 +48,27 @@ public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ServiceV
         // Отображение категории
         String categoryName = categoryDao.getCategoryById(service.getCategoryId()).getName();
         holder.textCategory.setText(categoryName);
+
+        // Обработчик клика
+        holder.itemView.setOnClickListener(v -> {
+            // Создаем фрагмент деталей услуги
+            ServiceDetailFragment detailFragment = new ServiceDetailFragment();
+
+            // Передаем ID услуги через аргументы
+            Bundle args = new Bundle();
+            args.putLong("service_id", service.getId());
+            detailFragment.setArguments(args);
+
+            // Открываем фрагмент используя Context
+            if (context instanceof FragmentActivity) {
+                FragmentActivity activity = (FragmentActivity) context;
+                activity.getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragment_container, detailFragment)
+                        .addToBackStack(null)
+                        .commit();
+            }
+        });
     }
 
     @Override
