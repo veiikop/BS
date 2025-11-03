@@ -5,6 +5,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -76,19 +78,23 @@ public class DateSelectionFragment extends Fragment {
 
         // Обработчик клика на кнопку "Далее" для перехода к выбору времени
         nextButton.setOnClickListener(v -> {
-            if (selectedDate != null) {
-                TimeSelectionFragment timeFragment = new TimeSelectionFragment();
-                Bundle args = new Bundle();
-                args.putLong("service_id", serviceId);
-                args.putString("selected_date", selectedDate);
-                timeFragment.setArguments(args);
-
-                requireActivity().getSupportFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.fragment_container, timeFragment)
-                        .addToBackStack(null)
-                        .commit();
+            if (selectedDate == null) {
+                Toast.makeText(requireContext(), "Пожалуйста, выберите дату", Toast.LENGTH_SHORT).show();
+                return;
             }
+
+            // Переход к выбору времени
+            TimeSelectionFragment timeFragment = new TimeSelectionFragment();
+            Bundle args = new Bundle();
+            args.putLong("service_id", serviceId);
+            args.putString("selected_date", selectedDate);
+            timeFragment.setArguments(args);
+
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragment_container, timeFragment)
+                    .addToBackStack(null)
+                    .commit();
         });
 
         // Обработчик кнопки "Назад"

@@ -59,7 +59,7 @@ public class TimeSelectionFragment extends Fragment {
                 Toast.makeText(requireContext(), "Пожалуйста, выберите время перед продолжением", Toast.LENGTH_SHORT).show();
                 return;
             }
-            // Оригинальная логика перехода
+            //  логика перехода
             MasterSelectionFragment masterFragment = new MasterSelectionFragment();
             Bundle args = new Bundle();
             args.putLong("service_id", serviceId);
@@ -74,6 +74,7 @@ public class TimeSelectionFragment extends Fragment {
                     .commit();
         });
 
+        // Обработчик кнопки "Назад"
         view.findViewById(R.id.button_back).setOnClickListener(v -> {
             requireActivity().getSupportFragmentManager().popBackStack();
         });

@@ -110,41 +110,49 @@ public class BookingConfirmationFragment extends Fragment {
      * Создает запись в базе данных, проверяя на дубликаты.
      */
     private void createAppointment() {
-        // TODO: Заменить на реальный ID пользователя (например, из SharedPreferences)
+        // TODO: Заменить на реальный ID пользователя
         long userId = 1; // Временное значение для демо
 
         ServiceDao serviceDao = new ServiceDao(requireContext());
         Service service = serviceDao.getServiceById(serviceId);
 
-        if (service != null) {
-            AppointmentDao appointmentDao = new AppointmentDao(requireContext());
-            // Проверяем, не существует ли уже такая запись
-            if (appointmentDao.appointmentExists(userId, serviceId, masterId, dateTime)) {
-                Toast.makeText(requireContext(), "Запись уже существует", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            // Создаем объект записи
-            Appointment appointment = new Appointment();
-            appointment.setUserId(userId);
-            appointment.setServiceId(serviceId);
-            appointment.setMasterId(masterId);
-            appointment.setDateTime(dateTime);
-            appointment.setPrice(service.getPrice());
-            appointment.setStatus("future");
-
-            // Вставляем запись в базу данных
-            long appointmentId = appointmentDao.insertAppointment(appointment);
-
-            if (appointmentId != -1) {
-                Toast.makeText(requireContext(), "Запись успешно создана!", Toast.LENGTH_LONG).show();
-                // Возвращаемся в каталог
-                requireActivity().getSupportFragmentManager().popBackStack("catalog", 0);
-            } else {
-                Toast.makeText(requireContext(), "Ошибка при создании записи", Toast.LENGTH_SHORT).show();
-            }
-        } else {
+        if (service == null) {
             Toast.makeText(requireContext(), "Ошибка загрузки услуги", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        AppointmentDao appointmentDao = new AppointmentDao(requireContext());
+
+        // ПРОВЕРКА 1: Уже есть запись на это время?
+        if (appointmentDao.hasAppointmentAtTime(userId, dateTime)) {
+            Toast.makeText(requireContext(),
+                    "Вы уже записаны на это время. Выберите другое.",
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        // ПРОВЕРКА 2: Дубликат той же услуги + мастера
+        if (appointmentDao.appointmentExists(userId, serviceId, masterId, dateTime)) {
+            Toast.makeText(requireContext(), "Такая запись уже существует", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Создаём запись
+        Appointment appointment = new Appointment();
+        appointment.setUserId(userId);
+        appointment.setServiceId(serviceId);
+        appointment.setMasterId(masterId);
+        appointment.setDateTime(dateTime);
+        appointment.setPrice(service.getPrice());
+        appointment.setStatus("future");
+
+        long appointmentId = appointmentDao.insertAppointment(appointment);
+
+        if (appointmentId != -1) {
+            Toast.makeText(requireContext(), "Запись успешно создана!", Toast.LENGTH_LONG).show();
+            requireActivity().getSupportFragmentManager().popBackStack("catalog", 0);
+        } else {
+            Toast.makeText(requireContext(), "Ошибка при создании записи", Toast.LENGTH_SHORT).show();
         }
     }
 }

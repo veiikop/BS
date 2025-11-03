@@ -13,6 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -38,7 +39,7 @@ public class CatalogFragment extends Fragment {
     private List<Service> allServices;
     private List<Service> filteredServices;
     private TextView textEmpty;
-    private boolean isSpinnerInitialized = false; // Флаг инициализации Spinner
+    private boolean isSpinnerInitialized = false;
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -66,21 +67,21 @@ public class CatalogFragment extends Fragment {
 
         loadInitialData(spinnerCategory);
 
-        // Отключаем TextWatcher до инициализации Spinner
+        // Поиск с задержкой
         editSearch.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if (isSpinnerInitialized) {
-                    filterBySearch(s.toString(), spinnerCategory.getSelectedItemPosition(),
-                            editPriceFrom.getText().toString(), editPriceTo.getText().toString());
+                    filterBySearch(s.toString(),
+                            spinnerCategory.getSelectedItemPosition(),
+                            editPriceFrom.getText().toString(),
+                            editPriceTo.getText().toString());
                 }
             }
-            @Override
-            public void afterTextChanged(Editable s) {}
+            @Override public void afterTextChanged(Editable s) {}
         });
 
+        // Кнопка "Фильтр"
         buttonFilter.setOnClickListener(v -> {
             if (isSpinnerInitialized) {
                 applyFilter(
@@ -94,50 +95,94 @@ public class CatalogFragment extends Fragment {
         return view;
     }
 
-    private void loadInitialData(Spinner spinnerCategory) {
-        executor.execute(() -> {
-            List<Category> categories = categoryDao.getAllCategories();
-            allServices = serviceDao.getAllServices();
+    // ========================================================================
+    // ВАЛИДАЦИЯ ЦЕН
+    // ========================================================================
+    private static class ValidationResult {
+        boolean isValid;
+        String errorMessage;
+        double from, to;
+        boolean clearFrom, clearTo;
 
-            mainHandler.post(() -> {
-                List<String> categoryNames = new ArrayList<>();
-                categoryNames.add("Все");
-                for (Category category : categories) {
-                    categoryNames.add(category.getName());
-                }
-                ArrayAdapter<String> adapterSpinner = new ArrayAdapter<>(
-                        requireContext(), android.R.layout.simple_spinner_item, categoryNames);
-                adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                spinnerCategory.setAdapter(adapterSpinner);
-                isSpinnerInitialized = true; // Устанавливаем флаг после инициализации
-
-                filteredServices.clear();
-                filteredServices.addAll(allServices);
-                updateUI();
-            });
-        });
+        ValidationResult(boolean isValid, String errorMessage, double from, double to,
+                         boolean clearFrom, boolean clearTo) {
+            this.isValid = isValid;
+            this.errorMessage = errorMessage;
+            this.from = from;
+            this.to = to;
+            this.clearFrom = clearFrom;
+            this.clearTo = clearTo;
+        }
     }
 
+    private ValidationResult validatePriceRange(String fromStr, String toStr) {
+        EditText editFrom = requireView().findViewById(R.id.edit_price_from);
+        EditText editTo = requireView().findViewById(R.id.edit_price_to);
+
+        double from = 0.0;
+        double to = Double.MAX_VALUE;
+        boolean clearFrom = false;
+        boolean clearTo = false;
+
+        // "От"
+        if (!fromStr.isEmpty()) {
+            try {
+                from = Double.parseDouble(fromStr);
+                if (from < 0) {
+                    return new ValidationResult(false, "Цена 'от' не может быть отрицательной", 0, 0, true, false);
+                }
+            } catch (NumberFormatException e) {
+                return new ValidationResult(false, "Некорректное значение в поле 'от'", 0, 0, true, false);
+            }
+        }
+
+        // "До"
+        if (!toStr.isEmpty()) {
+            try {
+                to = Double.parseDouble(toStr);
+                if (to < 0) {
+                    return new ValidationResult(false, "Цена 'до' не может быть отрицательной", 0, 0, false, true);
+                }
+                if (from > 0 && to < from) {
+                    return new ValidationResult(false, "Цена 'до' не может быть меньше 'от'", 0, 0, false, true);
+                }
+            } catch (NumberFormatException e) {
+                return new ValidationResult(false, "Некорректное значение в поле 'до'", 0, 0, false, true);
+            }
+        }
+
+        return new ValidationResult(true, "", from, to, clearFrom, clearTo);
+    }
+
+    // ========================================================================
+    // ФИЛЬТРАЦИЯ
+    // ========================================================================
     private void applyFilter(int selectedPosition, String priceFromStr, String priceToStr) {
+        ValidationResult validation = validatePriceRange(priceFromStr, priceToStr);
+        if (!validation.isValid) {
+            mainHandler.post(() -> {
+                Toast.makeText(requireContext(), validation.errorMessage, Toast.LENGTH_LONG).show();
+                if (validation.clearFrom) {
+                    ((EditText) requireView().findViewById(R.id.edit_price_from)).setText("");
+                }
+                if (validation.clearTo) {
+                    ((EditText) requireView().findViewById(R.id.edit_price_to)).setText("");
+                }
+            });
+            return;
+        }
+
+        double priceFrom = validation.from;
+        double priceTo = validation.to;
+
         executor.execute(() -> {
             try {
                 List<Service> result = new ArrayList<>();
-                double priceFrom = priceFromStr.isEmpty() ? 0.0 : Double.parseDouble(priceFromStr);
-                double priceTo = priceToStr.isEmpty() ? Double.MAX_VALUE : Double.parseDouble(priceToStr);
-
                 List<Category> categories = categoryDao.getAllCategories();
                 long categoryId = -1;
-                // Проверяем, что selectedPosition валиден
+
                 if (selectedPosition > 0 && selectedPosition - 1 < categories.size()) {
                     categoryId = categories.get(selectedPosition - 1).getId();
-                } else if (selectedPosition < 0) {
-                    Log.w("CatalogFragment", "Invalid selectedPosition: " + selectedPosition);
-                    mainHandler.post(() -> {
-                        filteredServices.clear();
-                        filteredServices.addAll(allServices);
-                        updateUI();
-                    });
-                    return;
                 }
 
                 if (categoryId == -1) {
@@ -145,7 +190,7 @@ public class CatalogFragment extends Fragment {
                 } else {
                     List<Service> byCategory = serviceDao.getServicesByCategoryId(categoryId);
                     result.addAll(byCategory.stream()
-                            .filter(service -> service.getPrice() >= priceFrom && service.getPrice() <= priceTo)
+                            .filter(s -> s.getPrice() >= priceFrom && s.getPrice() <= priceTo)
                             .collect(Collectors.toList()));
                 }
 
@@ -154,38 +199,31 @@ public class CatalogFragment extends Fragment {
                     filteredServices.addAll(result);
                     updateUI();
                 });
-            } catch (NumberFormatException e) {
-                Log.e("CatalogFragment", "Неверный формат цены", e);
-                mainHandler.post(() -> {
-                    filteredServices.clear();
-                    updateUI();
-                });
             } catch (Exception e) {
                 Log.e("CatalogFragment", "Ошибка в applyFilter", e);
+                mainHandler.post(() -> Toast.makeText(requireContext(), "Ошибка фильтрации", Toast.LENGTH_SHORT).show());
             }
         });
     }
 
     private void filterBySearch(String searchText, int selectedPosition, String priceFromStr, String priceToStr) {
+        ValidationResult validation = validatePriceRange(priceFromStr, priceToStr);
+        if (!validation.isValid) {
+            mainHandler.post(() -> Toast.makeText(requireContext(), validation.errorMessage, Toast.LENGTH_SHORT).show());
+            return;
+        }
+
+        double priceFrom = validation.from;
+        double priceTo = validation.to;
+
         executor.execute(() -> {
             try {
                 List<Service> result = new ArrayList<>();
-                double priceFrom = priceFromStr.isEmpty() ? 0.0 : Double.parseDouble(priceFromStr);
-                double priceTo = priceToStr.isEmpty() ? Double.MAX_VALUE : Double.parseDouble(priceToStr);
-
                 List<Category> categories = categoryDao.getAllCategories();
                 long categoryId = -1;
-                // Проверяем, что selectedPosition валиден
+
                 if (selectedPosition > 0 && selectedPosition - 1 < categories.size()) {
                     categoryId = categories.get(selectedPosition - 1).getId();
-                } else if (selectedPosition < 0) {
-                    Log.w("CatalogFragment", "Invalid selectedPosition: " + selectedPosition);
-                    mainHandler.post(() -> {
-                        filteredServices.clear();
-                        filteredServices.addAll(allServices);
-                        updateUI();
-                    });
-                    return;
                 }
 
                 if (categoryId == -1) {
@@ -193,25 +231,19 @@ public class CatalogFragment extends Fragment {
                 } else {
                     List<Service> byCategory = serviceDao.getServicesByCategoryId(categoryId);
                     result.addAll(byCategory.stream()
-                            .filter(service -> service.getPrice() >= priceFrom && service.getPrice() <= priceTo)
+                            .filter(s -> s.getPrice() >= priceFrom && s.getPrice() <= priceTo)
                             .collect(Collectors.toList()));
                 }
 
                 final List<Service> filteredResult = searchText.isEmpty()
                         ? result
                         : result.stream()
-                        .filter(service -> service.getName().toLowerCase().contains(searchText.toLowerCase()))
+                        .filter(s -> s.getName().toLowerCase().contains(searchText.toLowerCase()))
                         .collect(Collectors.toList());
 
                 mainHandler.post(() -> {
                     filteredServices.clear();
                     filteredServices.addAll(filteredResult);
-                    updateUI();
-                });
-            } catch (NumberFormatException e) {
-                Log.e("CatalogFragment", "Неверный формат цены", e);
-                mainHandler.post(() -> {
-                    filteredServices.clear();
                     updateUI();
                 });
             } catch (Exception e) {
@@ -220,15 +252,44 @@ public class CatalogFragment extends Fragment {
         });
     }
 
+    // ========================================================================
+    // ЗАГРУЗКА ДАННЫХ
+    // ========================================================================
+    private void loadInitialData(Spinner spinnerCategory) {
+        executor.execute(() -> {
+            List<Category> categories = categoryDao.getAllCategories();
+            allServices = serviceDao.getAllServices();
+
+            mainHandler.post(() -> {
+                List<String> categoryNames = new ArrayList<>();
+                categoryNames.add("Все");
+                for (Category c : categories) {
+                    categoryNames.add(c.getName());
+                }
+
+                ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(
+                        requireContext(), android.R.layout.simple_spinner_item, categoryNames);
+                spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                spinnerCategory.setAdapter(spinnerAdapter);
+                isSpinnerInitialized = true;
+
+                filteredServices.clear();
+                filteredServices.addAll(allServices);
+                updateUI();
+            });
+        });
+    }
+
     private void updateUI() {
         adapter.notifyDataSetChanged();
-        Log.d("CatalogFragment", "Filtered services count: " + filteredServices.size());
         textEmpty.setVisibility(filteredServices.isEmpty() ? View.VISIBLE : View.GONE);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        executor.shutdown();
+        if (!executor.isShutdown()) {
+            executor.shutdown();
+        }
     }
 }

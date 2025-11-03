@@ -414,4 +414,23 @@ public class AppointmentDao {
         cursor.close();
         return exists;
     }
+    /**
+     * Проверяет, есть ли у пользователя запись на указанное время (независимо от услуги/мастера).
+     * @param userId ID пользователя
+     * @param dateTime Дата и время (yyyy-MM-dd HH:mm)
+     * @return true, если уже есть запись
+     */
+    public boolean hasAppointmentAtTime(long userId, String dateTime) {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor = db.query(
+                "appointments",
+                new String[]{"id"},
+                "user_id = ? AND date_time = ?",
+                new String[]{String.valueOf(userId), dateTime},
+                null, null, null
+        );
+        boolean exists = cursor.moveToFirst();
+        cursor.close();
+        return exists;
+    }
 }
