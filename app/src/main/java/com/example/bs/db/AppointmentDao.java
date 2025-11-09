@@ -433,4 +433,17 @@ public class AppointmentDao {
         cursor.close();
         return exists;
     }
+    /**
+     * Обновляет статусы записей: future → past, если время прошло
+     */
+    public void updateStatusBasedOnTime() {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        String currentDateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+                .format(new Date());
+
+        String updateQuery = "UPDATE appointments SET status = 'past' " +
+                "WHERE status = 'future' AND date_time < ?";
+
+        db.execSQL(updateQuery, new String[]{currentDateTime});
+    }
 }

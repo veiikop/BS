@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Услуга -->
+        <TextView
+            android:id="@+id/text_service"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Услуга"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorText" />
+
+        <!-- Мастер -->
+        <TextView
+            android:id="@+id/text_master"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Мастер"
+            android:textSize="14sp"
+            android:textColor="@color/nav_item_inactive"
+            android:layout_marginTop="4dp" />
+
+        <!-- Дата и время -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp">
+
+            <TextView
+                android:id="@+id/text_date"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="01 янв 2025"
+                android:textSize="14sp"
+                android:textColor="@color/colorText" />
+
+            <TextView
+                android:id="@+id/text_time"
+                android:layout_width="49dp"
+                android:layout_height="wrap_content"
+                android:text="10:00"
+                android:textAlignment="textEnd"
+                android:textColor="@color/colorText"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- Цена и статус -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/text_price"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="1500 ₽"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/colorPrimary" />
+
+            <TextView
+                android:id="@+id/text_status"
+                android:layout_width="103dp"
+                android:layout_height="wrap_content"
+                android:paddingStart="12dp"
+                android:paddingTop="6dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="6dp"
+                android:text="Будет"
+                android:textAlignment="center"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>
