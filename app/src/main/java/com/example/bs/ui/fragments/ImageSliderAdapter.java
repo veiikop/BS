@@ -14,7 +14,7 @@ import com.example.bs.R;
 public class ImageSliderAdapter extends RecyclerView.Adapter<ImageSliderAdapter.SliderViewHolder> {
 
     private final int[] imageResIds = {
-            R.drawable.salon1, // Замените на реальные drawables
+            R.drawable.salon1,
             R.drawable.salon2,
             R.drawable.salon3
     };

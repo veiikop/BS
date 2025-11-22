@@ -1,6 +1,7 @@
 package com.example.bs.ui;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -18,6 +19,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private EditText editTextLogin, editTextPassword;
     private UserDao userDao;
+    private SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +28,9 @@ public class LoginActivity extends AppCompatActivity {
 
         // Инициализация DAO
         userDao = new UserDao(this);
+
+        // Инициализируем SharedPreferences
+        sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
 
         // Привязка элементов UI
         editTextLogin = findViewById(R.id.editTextLogin);
@@ -44,7 +49,12 @@ public class LoginActivity extends AppCompatActivity {
 
             User user = userDao.getUserByLogin(login);
             if (user != null && user.getPassword().equals(password)) {
+                // Сохраняем ID текущего пользователя
+                sharedPreferences.edit()
+                        .putLong("user_id", user.getId())
+                        .apply();
                 Toast.makeText(this, "Вход выполнен", Toast.LENGTH_SHORT).show();
+
                 startActivity(new Intent(this, MainActivity.class)); // Переход на главную страницу
                 finish();
             } else {

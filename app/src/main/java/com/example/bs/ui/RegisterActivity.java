@@ -60,6 +60,10 @@ public class RegisterActivity extends AppCompatActivity {
             User user = new User(0, login, password, "", "", "", "", "");
             long id = userDao.insertUser(user);
             if (id != -1) {
+                getSharedPreferences("user_prefs", MODE_PRIVATE)
+                        .edit()
+                        .putLong("user_id", id)
+                        .apply();
                 Toast.makeText(this, "Регистрация успешна", Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(this, LoginActivity.class));
                 finish();
