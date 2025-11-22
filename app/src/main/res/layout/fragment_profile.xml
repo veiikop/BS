@@ -1,18 +1,175 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorBackground"
-    android:orientation="horizontal"
     android:padding="16dp">
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="Профиль"
-        android:textAlignment="center"
-        android:textColor="@color/colorText"
-        android:textSize="18sp" />
+        android:orientation="vertical">
 
-</LinearLayout>
+        <!-- Заголовок -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Профиль"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorText"
+            android:gravity="center"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Логин (не редактируемый) -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Логин:"
+            android:textSize="16sp"
+            android:textColor="@color/colorText"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/text_login"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@drawable/custom_input"
+            android:padding="12dp"
+            android:textSize="18sp"
+            android:textColor="@color/colorText"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Имя -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Имя:"
+            android:textSize="16sp"
+            android:textColor="@color/colorText"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/edit_name"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@drawable/custom_input"
+            android:padding="12dp"
+            android:textSize="18sp"
+            android:textColor="@color/colorText"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Фамилия -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Фамилия:"
+            android:textSize="16sp"
+            android:textColor="@color/colorText"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/edit_surname"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@drawable/custom_input"
+            android:padding="12dp"
+            android:textSize="18sp"
+            android:textColor="@color/colorText"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Дата рождения -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Дата рождения (YYYY-MM-DD):"
+            android:textSize="16sp"
+            android:textColor="@color/colorText"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/edit_birthdate"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@drawable/custom_input"
+            android:padding="12dp"
+            android:textSize="18sp"
+            android:textColor="@color/colorText"
+            android:focusable="false"
+            android:clickable="true"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Телефон -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Телефон:"
+            android:textSize="16sp"
+            android:textColor="@color/colorText"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/edit_phone"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@drawable/custom_input"
+            android:padding="12dp"
+            android:textSize="18sp"
+            android:textColor="@color/colorText"
+            android:inputType="phone"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Пол -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Пол:"
+            android:textSize="16sp"
+            android:textColor="@color/colorText"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/edit_gender"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@drawable/custom_input"
+            android:padding="12dp"
+            android:textSize="18sp"
+            android:textColor="@color/colorText"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Кнопка сохранения -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_save"
+            style="@style/CustomButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Сохранить изменения"
+            android:textColor="@color/white"
+            app:backgroundTint="@color/colorPrimary"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Кнопка о приложении -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_about"
+            style="@style/CustomButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="О приложении"
+            android:textColor="@color/white"
+            app:backgroundTint="@color/colorPrimary"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Кнопка выхода -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_logout"
+            style="@style/CustomButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Выйти из аккаунта"
+            android:textColor="@color/white"
+            app:backgroundTint="@color/colorError" />
+
+    </LinearLayout>
+</ScrollView>
