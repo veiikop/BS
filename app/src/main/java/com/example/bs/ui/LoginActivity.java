@@ -47,18 +47,19 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            User user = userDao.getUserByLogin(login);
-            if (user != null && user.getPassword().equals(password)) {
+            // Используем безопасную аутентификацию
+            User user = userDao.authenticateUser(login, password);
+            if (user != null) {
                 // Сохраняем ID текущего пользователя
                 sharedPreferences.edit()
                         .putLong("user_id", user.getId())
                         .apply();
                 Toast.makeText(this, "Вход выполнен", Toast.LENGTH_SHORT).show();
 
-                startActivity(new Intent(this, MainActivity.class)); // Переход на главную страницу
+                startActivity(new Intent(this, MainActivity.class));
                 finish();
             } else {
-                Toast.makeText(this, "Неправильный пароль", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Неверный логин или пароль", Toast.LENGTH_SHORT).show();
             }
         });
     }

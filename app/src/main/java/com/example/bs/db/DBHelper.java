@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class DBHelper extends SQLiteOpenHelper {
     private static final String DB_NAME = "bsmobile.db";
-    private static final int DB_VERSION = 6;
+    private static final int DB_VERSION = 7;
     private static DBHelper instance;
 
     private DBHelper(Context context) {
@@ -47,6 +47,7 @@ public class DBHelper extends SQLiteOpenHelper {
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "login TEXT UNIQUE NOT NULL, " +
                 "password TEXT NOT NULL, " +
+                "salt TEXT NOT NULL, " +
                 "name TEXT, " +
                 "surname TEXT, " +
                 "birthdate TEXT, " +
