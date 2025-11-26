@@ -45,4 +45,7 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.gridlayout:gridlayout:1.0.0")
+
+    implementation("com.github.bumptech.glide:glide:4.15.1")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.15.1")
 }

@@ -1,0 +1,5 @@
+<resources>
+    <!-- Existing dimensions -->
+    <dimen name="indicator_size">12dp</dimen>
+    <dimen name="indicator_margin">6dp</dimen>
+</resources>

@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.bs.R;
 
 /**
- * Адаптер для слайдера фотографий услуг.
+ *  адаптер для слайдера фотографий услуг
  */
 public class ImageSliderAdapter extends RecyclerView.Adapter<ImageSliderAdapter.SliderViewHolder> {
 
@@ -17,6 +17,13 @@ public class ImageSliderAdapter extends RecyclerView.Adapter<ImageSliderAdapter.
             R.drawable.salon1,
             R.drawable.salon2,
             R.drawable.salon3
+    };
+
+    // Заголовки для каждого слайда
+    private final String[] slideTitles = {
+            "Профессиональный макияж",
+            "Стильные стрижки",
+            "Уход за кожей"
     };
 
     @NonNull
@@ -29,7 +36,11 @@ public class ImageSliderAdapter extends RecyclerView.Adapter<ImageSliderAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull SliderViewHolder holder, int position) {
-        holder.imageView.setImageResource(imageResIds[position % imageResIds.length]);
+        int actualPosition = position % imageResIds.length;
+
+        // Простая загрузка изображения
+        holder.imageView.setImageResource(imageResIds[actualPosition]);
+        holder.textTitle.setText(slideTitles[actualPosition]);
     }
 
     @Override
@@ -37,12 +48,18 @@ public class ImageSliderAdapter extends RecyclerView.Adapter<ImageSliderAdapter.
         return Integer.MAX_VALUE; // бесконечная прокрутка
     }
 
+    public int getRealItemCount() {
+        return imageResIds.length;
+    }
+
     static class SliderViewHolder extends RecyclerView.ViewHolder {
         ImageView imageView;
+        com.google.android.material.textview.MaterialTextView textTitle;
 
         SliderViewHolder(@NonNull View itemView) {
             super(itemView);
             imageView = itemView.findViewById(R.id.image_slider);
+            textTitle = itemView.findViewById(R.id.text_slide_title);
         }
     }
 }
