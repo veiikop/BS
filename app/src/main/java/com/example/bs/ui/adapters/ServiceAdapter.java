@@ -1,4 +1,4 @@
-package com.example.bs.ui.fragments;
+package com.example.bs.ui.adapters;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -13,6 +13,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.bs.R;
 import com.example.bs.db.CategoryDao;
 import com.example.bs.model.Service;
+import com.example.bs.ui.fragments.ServiceDetailFragment;
+
 import java.util.List;
 
 /**

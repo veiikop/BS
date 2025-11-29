@@ -22,6 +22,7 @@ import com.example.bs.db.CategoryDao;
 import com.example.bs.db.ServiceDao;
 import com.example.bs.model.Category;
 import com.example.bs.model.Service;
+import com.example.bs.ui.adapters.ServiceAdapter;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;

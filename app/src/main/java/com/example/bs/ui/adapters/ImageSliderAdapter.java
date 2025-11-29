@@ -1,4 +1,4 @@
-package com.example.bs.ui.fragments;
+package com.example.bs.ui.adapters;
 
 import android.view.LayoutInflater;
 import android.view.View;

@@ -18,6 +18,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.bs.R;
 import com.example.bs.db.AppointmentDao;
 import com.example.bs.model.Appointment;
+import com.example.bs.ui.adapters.AppointmentAdapter;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
