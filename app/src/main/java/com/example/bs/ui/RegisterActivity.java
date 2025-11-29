@@ -50,8 +50,13 @@ public class RegisterActivity extends AppCompatActivity {
             }
         });
 
-        // Переход на страницу входа
         buttonLogin.setOnClickListener(v -> {
+            // Очищаем данные авторизации перед переходом к логину
+            sharedPreferences.edit()
+                    .remove("user_id")
+                    .remove("user_login")
+                    .apply();
+
             startActivity(new Intent(this, LoginActivity.class));
             finish();
         });
