@@ -1,5 +1,7 @@
 package com.example.bs.ui.fragments;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -16,7 +18,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.bs.R;
 import com.example.bs.db.AppointmentDao;
 import com.example.bs.model.Appointment;
-import com.example.bs.ui.fragments.AppointmentAdapter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -29,7 +30,7 @@ public class AppointmentsFragment extends Fragment {
     private TextView textEmpty;
     private Spinner spinnerFilter;
     private AppointmentDao appointmentDao;
-    private long currentUserId = 1; // TODO: Заменить на реальный ID из SharedPreferences / Session
+    private long currentUserId = -1;
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -48,10 +49,27 @@ public class AppointmentsFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerView.setAdapter(adapter);
 
+        // получение ID текущего пользователя из SharedPreferences
+        getCurrentUserId();
+
         setupFilter();
-        loadAppointments("all");
+
+        // загрузка записей только если пользователь авторизован
+        if (currentUserId != -1) {
+            loadAppointments("all");
+        } else {
+            showNotAuthorizedMessage();
+        }
 
         return view;
+    }
+
+    /**
+     * Получает ID текущего пользователя из SharedPreferences
+     */
+    private void getCurrentUserId() {
+        SharedPreferences sharedPreferences = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
+        currentUserId = sharedPreferences.getLong("user_id", -1);
     }
 
     private void setupFilter() {
@@ -65,7 +83,9 @@ public class AppointmentsFragment extends Fragment {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String filter = position == 0 ? "all" : (position == 1 ? "future" : "past");
-                loadAppointments(filter);
+                if (currentUserId != -1) {
+                    loadAppointments(filter);
+                }
             }
 
             @Override
@@ -74,10 +94,16 @@ public class AppointmentsFragment extends Fragment {
     }
 
     private void loadAppointments(String filter) {
+        if (currentUserId == -1) {
+            showNotAuthorizedMessage();
+            return;
+        }
+
         executor.execute(() -> {
-            // Обновляем статусы
+            // обновление статуса
             appointmentDao.updateStatusBasedOnTime();
 
+            //  метод для получения записей пользователя
             List<Appointment> allAppointments = appointmentDao.getAppointmentsByUserId(currentUserId);
             List<Appointment> filtered = new ArrayList<>();
 
@@ -89,14 +115,52 @@ public class AppointmentsFragment extends Fragment {
                 }
             }
 
-            // Сортировка по дате
+            // сортировка по дате
             filtered.sort((a1, a2) -> a2.getDateTime().compareTo(a1.getDateTime())); // DESC
 
             mainHandler.post(() -> {
                 adapter.setAppointments(filtered);
                 textEmpty.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
+
+                // обновление текста пустого состояния
+                if (filtered.isEmpty()) {
+                    if (filter.equals("future")) {
+                        textEmpty.setText("У вас нет будущих записей");
+                    } else if (filter.equals("past")) {
+                        textEmpty.setText("У вас нет прошедших записей");
+                    } else {
+                        textEmpty.setText("У вас нет записей");
+                    }
+                }
             });
         });
+    }
+
+    /**
+     * Показывает сообщение о том, что пользователь не авторизован
+     */
+    private void showNotAuthorizedMessage() {
+        textEmpty.setVisibility(View.VISIBLE);
+        textEmpty.setText("Пожалуйста, войдите в систему");
+        adapter.setAppointments(new ArrayList<>());
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // При возобновлении фрагмента обновляем ID пользователя и загружаем записи
+        getCurrentUserId();
+        if (currentUserId != -1) {
+            loadAppointments(getCurrentFilter());
+        }
+    }
+
+    /**
+     * Получает текущий выбранный фильтр
+     */
+    private String getCurrentFilter() {
+        int position = spinnerFilter.getSelectedItemPosition();
+        return position == 0 ? "all" : (position == 1 ? "future" : "past");
     }
 
     @Override
