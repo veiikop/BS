@@ -1,6 +1,7 @@
 package com.example.bs.ui.fragments;
 
 import android.app.AlertDialog;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,6 +31,7 @@ public class BookingConfirmationFragment extends Fragment {
     private long serviceId; // ID выбранной услуги
     private String dateTime; // Дата и время записи (yyyy-MM-dd HH:mm)
     private long masterId; // ID выбранного мастера
+    private long currentUserId = -1;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -41,11 +43,21 @@ public class BookingConfirmationFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Получаем аргументы из бандла
+        //  ID текущего пользователя
+        getCurrentUserId();
+
+        // аргументы из бандла
         if (getArguments() != null) {
             serviceId = getArguments().getLong("service_id");
             dateTime = getArguments().getString("date_time");
             masterId = getArguments().getLong("master_id");
+        }
+
+        // проверка авторизацию
+        if (currentUserId == -1) {
+            Toast.makeText(requireContext(), "Ошибка: пользователь не авторизован", Toast.LENGTH_SHORT).show();
+            requireActivity().getSupportFragmentManager().popBackStack();
+            return;
         }
 
         // Отображаем информацию о записи
@@ -81,6 +93,14 @@ public class BookingConfirmationFragment extends Fragment {
     }
 
     /**
+     * Получает ID текущего пользователя из SharedPreferences
+     */
+    private void getCurrentUserId() {
+        SharedPreferences sharedPreferences = requireContext().getSharedPreferences("user_prefs", android.content.Context.MODE_PRIVATE);
+        currentUserId = sharedPreferences.getLong("user_id", -1);
+    }
+
+    /**
      * Отображает детали записи (услуга, мастер, дата/время, цена).
      * @param view Вью фрагмента
      */
@@ -110,9 +130,6 @@ public class BookingConfirmationFragment extends Fragment {
      * Создает запись в базе данных, проверяя на дубликаты.
      */
     private void createAppointment() {
-        // TODO: Заменить на реальный ID пользователя
-        long userId = 1; // Временное значение для демо
-
         ServiceDao serviceDao = new ServiceDao(requireContext());
         Service service = serviceDao.getServiceById(serviceId);
 
@@ -124,7 +141,7 @@ public class BookingConfirmationFragment extends Fragment {
         AppointmentDao appointmentDao = new AppointmentDao(requireContext());
 
         // ПРОВЕРКА 1: Уже есть запись на это время?
-        if (appointmentDao.hasAppointmentAtTime(userId, dateTime)) {
+        if (appointmentDao.hasAppointmentAtTime(currentUserId, dateTime)) {
             Toast.makeText(requireContext(),
                     "Вы уже записаны на это время. Выберите другое.",
                     Toast.LENGTH_LONG).show();
@@ -132,14 +149,14 @@ public class BookingConfirmationFragment extends Fragment {
         }
 
         // ПРОВЕРКА 2: Дубликат той же услуги + мастера
-        if (appointmentDao.appointmentExists(userId, serviceId, masterId, dateTime)) {
+        if (appointmentDao.appointmentExists(currentUserId, serviceId, masterId, dateTime)) {
             Toast.makeText(requireContext(), "Такая запись уже существует", Toast.LENGTH_SHORT).show();
             return;
         }
 
         // Создаём запись
         Appointment appointment = new Appointment();
-        appointment.setUserId(userId);
+        appointment.setUserId(currentUserId); // реальный ID пользователя
         appointment.setServiceId(serviceId);
         appointment.setMasterId(masterId);
         appointment.setDateTime(dateTime);
