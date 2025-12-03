@@ -46,6 +46,13 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.gridlayout:gridlayout:1.0.0")
 
+    // Для работы с уведомлениями
+    implementation("androidx.core:core:1.12.0")
+    // Для планирования уведомлений (WorkManager)
+    implementation("androidx.work:work-runtime:2.9.0")
+    // Для канала уведомлений (API 26+)
+    implementation("androidx.appcompat:appcompat:1.6.1")
+
     implementation("com.github.bumptech.glide:glide:4.15.1")
     annotationProcessor("com.github.bumptech.glide:compiler:4.15.1")
 }

@@ -3,30 +3,33 @@ package com.example.bs.ui.fragments;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
-
 import com.example.bs.R;
 import com.example.bs.db.UserDao;
 import com.example.bs.model.User;
 import com.example.bs.ui.LoginActivity;
+import com.example.bs.util.NotificationHelper;
+import com.example.bs.util.NotificationScheduler;
 import com.example.bs.util.PhoneValidator;
 
 import java.text.SimpleDateFormat;
@@ -47,10 +50,13 @@ public class ProfileFragment extends Fragment {
     private RadioGroup radioGender;
     private RadioButton radioMale, radioFemale;
     private Button buttonSave, buttonAbout, buttonLogout;
+    private SwitchCompat switchNotifications;
 
     // DatePicker для выбора даты рождения
     private Calendar birthdateCalendar;
     private SimpleDateFormat dateFormatter;
+
+    private boolean isSwitchUpdateFromUser = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -74,6 +80,7 @@ public class ProfileFragment extends Fragment {
         initViews(view);
         setupDatePicker();
         setupPhoneValidation();
+        setupNotificationSettings(view);
         loadUserData();
         setupListeners();
     }
@@ -93,10 +100,84 @@ public class ProfileFragment extends Fragment {
         buttonSave = view.findViewById(R.id.button_save);
         buttonAbout = view.findViewById(R.id.button_about);
         buttonLogout = view.findViewById(R.id.button_logout);
+        switchNotifications = view.findViewById(R.id.switch_notifications);
 
         // Инициализация форматтера даты
         dateFormatter = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         birthdateCalendar = Calendar.getInstance();
+    }
+
+    /**
+     * Настраивает Switch уведомлений
+     */
+    private void setupNotificationSettings(View view) {
+        switchNotifications.setOnCheckedChangeListener(null);
+
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            boolean notificationsEnabled = NotificationScheduler.areNotificationsEnabled(requireContext());
+
+            if (switchNotifications.isChecked() != notificationsEnabled) {
+                switchNotifications.setChecked(notificationsEnabled);
+            }
+
+            setupSwitchListener();
+
+            android.util.Log.d("ProfileFragment",
+                    "Notification switch initialized to: " + notificationsEnabled);
+
+        }, 100);
+    }
+
+    /**
+     * Настраивает слушатель для Switch
+     */
+    private void setupSwitchListener() {
+        switchNotifications.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (buttonView.isPressed() || isSwitchUpdateFromUser) {
+                    isSwitchUpdateFromUser = false;
+
+                    android.util.Log.d("ProfileFragment",
+                            "Switch changed by user to: " + isChecked);
+
+                    // Сохраняем настройку
+                    NotificationScheduler.setNotificationsEnabled(requireContext(), isChecked);
+
+                    // Дополнительные действия если включили
+                    if (isChecked) {
+                        checkSystemNotifications();
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * Проверяет системные настройки уведомлений
+     */
+    private void checkSystemNotifications() {
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (!NotificationHelper.areNotificationsEnabled(requireContext())) {
+                // Если уведомления отключены на уровне системы, предлагаем включить
+                requireActivity().runOnUiThread(() -> {
+                    new AlertDialog.Builder(requireContext())
+                            .setTitle("Включите уведомления")
+                            .setMessage("Уведомления отключены в настройках системы. " +
+                                    "Хотите включить их сейчас?")
+                            .setPositiveButton("Включить", (dialog, which) -> {
+                                NotificationHelper.openNotificationSettings(requireContext());
+                            })
+                            .setNegativeButton("Позже", null)
+                            .setNeutralButton("Не показывать снова", (dialog, which) -> {
+                                SharedPreferences prefs = requireContext()
+                                        .getSharedPreferences("app_settings", Context.MODE_PRIVATE);
+                                prefs.edit().putBoolean("dont_show_notification_warning", true).apply();
+                            })
+                            .show();
+                });
+            }
+        }, 300);
     }
 
     /**
@@ -105,13 +186,15 @@ public class ProfileFragment extends Fragment {
     private void setupDatePicker() {
         editBirthdate.setOnClickListener(v -> showDatePickerDialog());
 
-        // Добавляем возможность ручного ввода с валидацией
+        //  возможность ручного ввода с валидацией
         editBirthdate.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
 
             @Override
             public void afterTextChanged(Editable s) {
@@ -358,5 +441,59 @@ public class ProfileFragment extends Fragment {
      */
     private void showToast(String message) {
         Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+    }
+    /**
+     * Обновляет состояние Switch при возвращении на фрагмент
+     */
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (switchNotifications != null) {
+                boolean notificationsEnabled = NotificationScheduler.areNotificationsEnabled(requireContext());
+
+                switchNotifications.setOnCheckedChangeListener(null);
+                switchNotifications.setChecked(notificationsEnabled);
+                setupSwitchListener();
+
+                android.util.Log.d("ProfileFragment",
+                        "Switch updated on resume to: " + notificationsEnabled);
+            }
+        }, 200);
+    }
+
+    /**
+     * Сохраняет состояние фрагмента
+     */
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        if (switchNotifications != null) {
+            outState.putBoolean("notification_switch_state", switchNotifications.isChecked());
+        }
+    }
+
+    /**
+     * Восстанавливает состояние фрагмента
+     */
+    @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+
+        if (savedInstanceState != null && switchNotifications != null) {
+            boolean savedState = savedInstanceState.getBoolean("notification_switch_state", true);
+
+            switchNotifications.setOnCheckedChangeListener(null);
+            switchNotifications.setChecked(savedState);
+
+            boolean actualState = NotificationScheduler.areNotificationsEnabled(requireContext());
+            if (savedState != actualState) {
+                switchNotifications.setChecked(actualState);
+            }
+
+            setupSwitchListener();
+        }
     }
 }

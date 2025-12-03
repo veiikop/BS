@@ -19,6 +19,7 @@ import com.example.bs.db.ServiceDao;
 import com.example.bs.model.Appointment;
 import com.example.bs.model.Master;
 import com.example.bs.model.Service;
+import com.example.bs.util.NotificationHelper;
 import com.google.android.material.button.MaterialButton;
 
 /**
@@ -102,6 +103,7 @@ public class BookingConfirmationFragment extends Fragment {
 
     /**
      * Отображает детали записи (услуга, мастер, дата/время, цена).
+     *
      * @param view Вью фрагмента
      */
     private void displayBookingInfo(View view) {
@@ -131,9 +133,9 @@ public class BookingConfirmationFragment extends Fragment {
      */
     private void createAppointment() {
         ServiceDao serviceDao = new ServiceDao(requireContext());
-        Service service = serviceDao.getServiceById(serviceId);
+        Service selectedService = serviceDao.getServiceById(serviceId);
 
-        if (service == null) {
+        if (selectedService == null) {
             Toast.makeText(requireContext(), "Ошибка загрузки услуги", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -160,12 +162,20 @@ public class BookingConfirmationFragment extends Fragment {
         appointment.setServiceId(serviceId);
         appointment.setMasterId(masterId);
         appointment.setDateTime(dateTime);
-        appointment.setPrice(service.getPrice());
+        appointment.setPrice(selectedService.getPrice());
         appointment.setStatus("future");
 
         long appointmentId = appointmentDao.insertAppointment(appointment);
 
         if (appointmentId != -1) {
+            // Уведомление о успешной записи
+            NotificationHelper.showBookingConfirmationNotification(
+                    requireContext(),
+                    selectedService.getName(),
+                    dateTime,
+                    appointmentId
+            );
+
             Toast.makeText(requireContext(), "Запись успешно создана!", Toast.LENGTH_LONG).show();
             requireActivity().getSupportFragmentManager().popBackStack("catalog", 0);
         } else {
