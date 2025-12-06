@@ -30,6 +30,16 @@
             android:gravity="center"
             android:layout_marginBottom="32dp" />
 
+        <!-- Информация о выходных днях -->
+        <TextView
+            android:id="@+id/text_holiday_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="! Выходные дни: понедельники и праздники"
+            android:textSize="14sp"
+            android:padding="8dp"
+            android:layout_marginBottom="16dp" />
+
         <!-- Выбранная дата -->
         <TextView
             android:id="@+id/text_selected_date"

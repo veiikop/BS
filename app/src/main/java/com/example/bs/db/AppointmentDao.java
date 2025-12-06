@@ -10,6 +10,7 @@ import com.example.bs.model.Appointment;
 import com.example.bs.model.Master;
 import com.example.bs.model.Service;
 import com.example.bs.model.Category;
+import com.example.bs.util.DateUtils;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -202,51 +203,6 @@ public class AppointmentDao {
             e.printStackTrace();
             return null;
         }
-    }
-
-    /**
-     * Получает доступные временные слоты для даты и услуги.
-     * @param date Дата в формате YYYY-MM-DD
-     * @param serviceId ID услуги
-     * @return Список доступных времен в формате HH:MM
-     */
-    public List<String> getAvailableTimeSlots(String date, long serviceId) {
-        List<String> availableSlots = new ArrayList<>();
-
-        // Проверяем, что дата не в прошлом
-        if (isDateInPast(date)) {
-            return availableSlots;
-        }
-
-        // Время работы салона
-        int startHour = 9; // 9:00
-        int endHour = 21;  // 21:00
-        int interval = 30; // Интервал 30 минут
-
-        // Получить продолжительность услуги
-        Service service = serviceDao.getServiceById(serviceId);
-        if (service == null) return availableSlots;
-
-        int duration = service.getDuration();
-
-        // Проверить каждый временной слот
-        for (int hour = startHour; hour < endHour; hour++) {
-            for (int minute = 0; minute < 60; minute += interval) {
-                String time = String.format(Locale.getDefault(), "%02d:%02d", hour, minute);
-                String dateTime = date + " " + time;
-
-                // Проверить, что время не в прошлом (для сегодняшней даты)
-                if (!isDateTimeInPast(dateTime)) {
-                    // Проверить, есть ли хотя бы один свободный мастер на этот слот
-                    List<Master> availableMasters = getAvailableMasters(dateTime, serviceId);
-                    if (!availableMasters.isEmpty()) {
-                        availableSlots.add(time);
-                    }
-                }
-            }
-        }
-
-        return availableSlots;
     }
 
     /**
@@ -445,5 +401,73 @@ public class AppointmentDao {
                 "WHERE status = 'future' AND date_time < ?";
 
         db.execSQL(updateQuery, new String[]{currentDateTime});
+    }
+
+    /**
+     * Проверяет, является ли дата выходным днем салона
+     */
+    private boolean isSalonHoliday(String date) {
+        return DateUtils.isSalonHoliday(date);
+    }
+
+    /**
+     * Проверяет, является ли дата и время доступными для записи
+     */
+    public boolean isDateTimeAvailable(String dateTime) {
+        if (DateUtils.isDateTimeInPast(dateTime)) {
+            return false;
+        }
+
+        // Проверяем, не выходной ли это день
+        String[] parts = dateTime.split(" ");
+        if (parts.length >= 1 && isSalonHoliday(parts[0])) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Получает доступные временные слоты с учетом выходных
+     */
+    public List<String> getAvailableTimeSlots(String date, long serviceId) {
+        List<String> availableSlots = new ArrayList<>();
+
+        // Проверяем, что дата не в прошлом
+        if (DateUtils.isDateInPast(date)) {
+            return availableSlots;
+        }
+
+        // Проверяем, не выходной ли это день
+        if (isSalonHoliday(date)) {
+            return availableSlots; // Пустой список для выходных
+        }
+
+        // Остальная логика остается прежней, но проверяем доступность каждого слота
+        int startHour = 9;
+        int endHour = 21;
+        int interval = 30;
+
+        Service service = serviceDao.getServiceById(serviceId);
+        if (service == null) return availableSlots;
+
+        int duration = service.getDuration();
+
+        for (int hour = startHour; hour < endHour; hour++) {
+            for (int minute = 0; minute < 60; minute += interval) {
+                String time = String.format(Locale.getDefault(), "%02d:%02d", hour, minute);
+                String dateTime = date + " " + time;
+
+                // Проверяем доступность времени
+                if (isDateTimeAvailable(dateTime)) {
+                    List<Master> availableMasters = getAvailableMasters(dateTime, serviceId);
+                    if (!availableMasters.isEmpty()) {
+                        availableSlots.add(time);
+                    }
+                }
+            }
+        }
+
+        return availableSlots;
     }
 }
