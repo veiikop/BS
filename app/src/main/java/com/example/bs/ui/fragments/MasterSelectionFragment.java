@@ -10,7 +10,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
 import com.example.bs.R;
 import com.example.bs.db.AppointmentDao;
 import com.example.bs.model.Master;
@@ -22,7 +21,7 @@ import java.util.List;
  * Фрагмент для выбора мастера.
  * Гарантирует выбор ТОЛЬКО ОДНОГО мастера.
  */
-public class MasterSelectionFragment extends Fragment {
+public class MasterSelectionFragment extends BaseFragment {
 
     private long serviceId;
     private String selectedDate;
@@ -40,6 +39,13 @@ public class MasterSelectionFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // Проверяем авторизацию
+        if (!isUserLoggedIn) {
+            Toast.makeText(requireContext(), "Пожалуйста, войдите в систему для записи", Toast.LENGTH_SHORT).show();
+            requireActivity().getSupportFragmentManager().popBackStack();
+            return;
+        }
 
         // Получаем аргументы
         if (getArguments() != null) {
@@ -68,6 +74,12 @@ public class MasterSelectionFragment extends Fragment {
         confirmButton.setOnClickListener(v -> {
             if (selectedMasterId == -1) {
                 Toast.makeText(requireContext(), "Выберите мастера", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Проверяем авторизацию перед переходом
+            if (!isUserLoggedIn) {
+                Toast.makeText(requireContext(), "Сессия истекла, войдите заново", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -158,6 +170,17 @@ public class MasterSelectionFragment extends Fragment {
             });
 
             container.addView(masterItem);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        // Проверяем авторизацию при возобновлении
+        if (!isUserLoggedIn) {
+            Toast.makeText(requireContext(), "Сессия истекла, войдите заново", Toast.LENGTH_SHORT).show();
+            requireActivity().getSupportFragmentManager().popBackStack();
         }
     }
 }

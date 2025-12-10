@@ -7,15 +7,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import androidx.fragment.app.Fragment;
 import com.example.bs.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 
 /**
- *  фрагмент главной страницы
+ * фрагмент главной страницы
  */
-public class HomeFragment extends Fragment {
+public class HomeFragment extends BaseFragment {
 
     private int currentImageIndex = 0;
     private final int[] salonImages = {
@@ -71,7 +70,14 @@ public class HomeFragment extends Fragment {
         // Карточка "Мои записи"
         MaterialCardView cardMyAppointments = view.findViewById(R.id.card_my_appointments);
         if (cardMyAppointments != null) {
-            cardMyAppointments.setOnClickListener(v -> navigateToAppointments());
+            cardMyAppointments.setOnClickListener(v -> {
+                // Проверяем авторизацию перед переходом к записям
+                if (!isUserLoggedIn) {
+                    showNotAuthorizedMessage();
+                } else {
+                    navigateToAppointments();
+                }
+            });
         }
 
         // Карточка "Акции"

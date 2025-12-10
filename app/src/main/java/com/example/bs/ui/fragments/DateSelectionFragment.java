@@ -7,12 +7,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.fragment.app.Fragment;
-
 import com.example.bs.R;
 import com.example.bs.util.DateUtils;
 import com.google.android.material.button.MaterialButton;
@@ -29,7 +26,7 @@ import java.util.Locale;
  * Пользователь может выбрать дату с помощью MaterialDatePicker,
  * но только начиная с сегодняшнего дня и исключая выходные и праздники.
  */
-public class DateSelectionFragment extends Fragment {
+public class DateSelectionFragment extends BaseFragment {
 
     private long serviceId; // ID выбранной услуги
     private String selectedDate; // Выбранная дата в формате yyyy-MM-dd
@@ -43,6 +40,13 @@ public class DateSelectionFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // Проверяем авторизацию
+        if (!isUserLoggedIn) {
+            Toast.makeText(requireContext(), "Пожалуйста, войдите в систему для записи", Toast.LENGTH_SHORT).show();
+            requireActivity().getSupportFragmentManager().popBackStack();
+            return;
+        }
 
         // Получаем аргументы из бандла
         if (getArguments() != null) {
@@ -303,15 +307,26 @@ public class DateSelectionFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        // При возобновлении фрагмента проверяем, не истекла ли выбранная дата
+        // При возобновлении фрагмента проверяем авторизацию
+        if (!isUserLoggedIn) {
+            Toast.makeText(requireContext(), "Сессия истекла, войдите заново", Toast.LENGTH_SHORT).show();
+            requireActivity().getSupportFragmentManager().popBackStack();
+            return;
+        }
+
+        // Проверяем, не истекла ли выбранная дата
         if (selectedDate != null) {
             if (!isDateAvailableForBooking(selectedDate)) {
                 // Сбрасываем выбор, если дата стала недоступной
                 selectedDate = null;
                 TextView dateText = requireView().findViewById(R.id.text_selected_date);
-                dateText.setText("Дата не выбрана (предыдущая дата стала недоступной)");
+                if (dateText != null) {
+                    dateText.setText("Дата не выбрана (предыдущая дата стала недоступной)");
+                }
                 MaterialButton nextButton = requireView().findViewById(R.id.button_next);
-                nextButton.setEnabled(false);
+                if (nextButton != null) {
+                    nextButton.setEnabled(false);
+                }
 
                 Toast.makeText(requireContext(),
                         "Выбранная ранее дата больше недоступна для записи",

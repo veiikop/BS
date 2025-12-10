@@ -14,7 +14,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
 import androidx.gridlayout.widget.GridLayout;
 import com.example.bs.R;
 import com.example.bs.db.AppointmentDao;
@@ -23,7 +22,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class TimeSelectionFragment extends Fragment {
+public class TimeSelectionFragment extends BaseFragment {
 
     private long serviceId;
     private String selectedDate;
@@ -39,6 +38,13 @@ public class TimeSelectionFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // Проверяем авторизацию
+        if (!isUserLoggedIn) {
+            Toast.makeText(requireContext(), "Пожалуйста, войдите в систему для записи", Toast.LENGTH_SHORT).show();
+            requireActivity().getSupportFragmentManager().popBackStack();
+            return;
+        }
 
         if (getArguments() != null) {
             serviceId = getArguments().getLong("service_id");
@@ -59,7 +65,14 @@ public class TimeSelectionFragment extends Fragment {
                 Toast.makeText(requireContext(), "Пожалуйста, выберите время перед продолжением", Toast.LENGTH_SHORT).show();
                 return;
             }
-            //  логика перехода
+
+            // Проверяем авторизацию перед переходом
+            if (!isUserLoggedIn) {
+                Toast.makeText(requireContext(), "Сессия истекла, войдите заново", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // логика перехода
             MasterSelectionFragment masterFragment = new MasterSelectionFragment();
             Bundle args = new Bundle();
             args.putLong("service_id", serviceId);
@@ -133,6 +146,17 @@ public class TimeSelectionFragment extends Fragment {
                 }
             });
         });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        // Проверяем авторизацию при возобновлении
+        if (!isUserLoggedIn) {
+            Toast.makeText(requireContext(), "Сессия истекла, войдите заново", Toast.LENGTH_SHORT).show();
+            requireActivity().getSupportFragmentManager().popBackStack();
+        }
     }
 
     @Override
