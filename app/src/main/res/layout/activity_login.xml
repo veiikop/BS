@@ -44,7 +44,7 @@
         android:id="@+id/editTextPassword"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:layout_marginBottom="32dp"
+        android:layout_marginBottom="16dp"
         android:background="@drawable/custom_input"
         android:drawableStart="@drawable/custom_block_icon"
         android:drawablePadding="12dp"
@@ -55,6 +55,16 @@
         android:textColor="@color/colorText"
         android:textColorHint="@color/colorText"
         android:textSize="20sp" />
+
+    <!-- Чекбокс Запомнить меня-->
+    <CheckBox
+        android:id="@+id/checkbox_remember_me"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
+        android:text="Запомнить меня"
+        android:textColor="@color/colorText"
+        android:checked="true" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/buttonLogin"
