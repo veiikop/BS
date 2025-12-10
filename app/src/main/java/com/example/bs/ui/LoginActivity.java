@@ -1,16 +1,19 @@
 package com.example.bs.ui;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.bs.R;
 import com.example.bs.db.UserDao;
 import com.example.bs.model.User;
+import com.example.bs.util.SessionManager;
 
 /**
  * Активность для входа пользователя.
@@ -18,18 +21,22 @@ import com.example.bs.model.User;
 public class LoginActivity extends AppCompatActivity {
 
     private EditText editTextLogin, editTextPassword;
+    private CheckBox checkBoxRememberMe;
     private UserDao userDao;
-    private SharedPreferences sharedPreferences;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Проверяем, не авторизован ли уже пользователь
-        sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
-        if (isUserLoggedIn()) {
-            navigateToMainActivity();
+        // Инициализация менеджера сессий
+        sessionManager = new SessionManager(this);
+
+        // Проверяем существующую сессию
+        if (sessionManager.isLoggedIn()) {
+            // Автоматический вход с валидной сессией
+            performAutoLogin();
             return;
         }
 
@@ -39,8 +46,16 @@ public class LoginActivity extends AppCompatActivity {
         // Привязка элементов UI
         editTextLogin = findViewById(R.id.editTextLogin);
         editTextPassword = findViewById(R.id.editTextPassword);
+        checkBoxRememberMe = findViewById(R.id.checkbox_remember_me);
         Button buttonLogin = findViewById(R.id.buttonLogin);
-        TextView textRegister = findViewById(R.id.textRegister); // Теперь этот ID существует
+        TextView textRegister = findViewById(R.id.textRegister);
+
+        // Загружаем сохраненный логин, если есть
+        String savedLogin = sessionManager.getSavedLogin();
+        if (!savedLogin.isEmpty()) {
+            editTextLogin.setText(savedLogin);
+            checkBoxRememberMe.setChecked(true);
+        }
 
         // Логика входа
         buttonLogin.setOnClickListener(v -> {
@@ -55,12 +70,11 @@ public class LoginActivity extends AppCompatActivity {
             // Используем безопасную аутентификацию
             User user = userDao.authenticateUser(login, password);
             if (user != null) {
-                // Сохраняем ID текущего пользователя
-                sharedPreferences.edit()
-                        .putLong("user_id", user.getId())
-                        .apply();
-                Toast.makeText(this, "Вход выполнен", Toast.LENGTH_SHORT).show();
+                // Сохраняем сессию
+                boolean rememberMe = checkBoxRememberMe.isChecked();
+                sessionManager.createSession(user.getId(), user.getLogin(), rememberMe);
 
+                Toast.makeText(this, "Вход выполнен", Toast.LENGTH_SHORT).show();
                 navigateToMainActivity();
             } else {
                 Toast.makeText(this, "Неверный логин или пароль", Toast.LENGTH_SHORT).show();
@@ -71,20 +85,41 @@ public class LoginActivity extends AppCompatActivity {
         textRegister.setOnClickListener(v -> {
             navigateToRegister();
         });
+        // Настраиваем обработчик кнопки "Назад"
+        setupBackPressHandler();
     }
 
     /**
-     * Проверяет, авторизован ли пользователь
+     * Выполняет автоматический вход по сохраненной сессии
      */
-    private boolean isUserLoggedIn() {
-        return sharedPreferences.getLong("user_id", -1) != -1;
+    private void performAutoLogin() {
+        long userId = sessionManager.getUserId();
+        String login = sessionManager.getUserLogin();
+
+        // Можно добавить дополнительную проверку существования пользователя
+        UserDao userDao = new UserDao(this);
+        User user = userDao.getUserById(userId);
+
+        if (user != null) {
+            // Продлеваем сессию
+            sessionManager.updateLastLogin();
+
+            Toast.makeText(this, "Автоматический вход: " + login, Toast.LENGTH_SHORT).show();
+            navigateToMainActivity();
+        } else {
+            // Пользователь был удален, очищаем сессию
+            sessionManager.clearSession();
+            Toast.makeText(this, "Сессия устарела, войдите заново", Toast.LENGTH_LONG).show();
+        }
     }
 
     /**
      * Переход к главной активности
      */
     private void navigateToMainActivity() {
-        startActivity(new Intent(this, MainActivity.class));
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
         finish();
     }
 
@@ -94,5 +129,31 @@ public class LoginActivity extends AppCompatActivity {
     private void navigateToRegister() {
         startActivity(new Intent(this, RegisterActivity.class));
         // Не закрываем LoginActivity, чтобы можно было вернуться назад
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // При возвращении на экран входа проверяем сессию
+        if (sessionManager.isLoggedIn()) {
+            // Если уже авторизованы, уходим на главный экран
+            navigateToMainActivity();
+        }
+    }
+
+    /**
+     * Настраивает обработчик кнопки "Назад"
+     */
+    private void setupBackPressHandler() {
+        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                // При нажатии кнопки "Назад" закрываем приложение
+                moveTaskToBack(true);
+            }
+        };
+
+        // Добавляем callback к диспетчеру
+        getOnBackPressedDispatcher().addCallback(this, callback);
     }
 }

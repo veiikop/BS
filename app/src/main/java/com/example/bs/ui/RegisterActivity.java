@@ -1,7 +1,6 @@
 package com.example.bs.ui;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -10,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.bs.R;
 import com.example.bs.db.UserDao;
 import com.example.bs.model.User;
+import com.example.bs.util.SessionManager;
 
 /**
  * Активность для регистрации нового пользователя.
@@ -19,18 +19,24 @@ public class RegisterActivity extends AppCompatActivity {
 
     private EditText editTextLogin, editTextPassword, editTextConfirmPassword;
     private UserDao userDao;
-    private SharedPreferences sharedPreferences;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
+        // Инициализация менеджера сессий
+        sessionManager = new SessionManager(this);
+
+        // Проверяем, не авторизован ли уже пользователь
+        if (sessionManager.isLoggedIn()) {
+            navigateToMainActivity();
+            return;
+        }
+
         // Инициализация DAO
         userDao = new UserDao(this);
-
-        // Инициализируем SharedPreferences
-        sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
 
         // Привязка элементов UI
         editTextLogin = findViewById(R.id.editTextLogin);
@@ -51,16 +57,11 @@ public class RegisterActivity extends AppCompatActivity {
         });
 
         buttonLogin.setOnClickListener(v -> {
-            // Очищаем данные авторизации перед переходом к логину
-            sharedPreferences.edit()
-                    .remove("user_id")
-                    .remove("user_login")
-                    .apply();
-
             startActivity(new Intent(this, LoginActivity.class));
             finish();
         });
     }
+
 
     /**
      * Валидирует ввод пользователя при регистрации.
@@ -115,35 +116,25 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        // Создание пользователя (пароль будет хэширован в UserDao.insertUser)
+        // Создание пользователя
         User user = new User(0, login, password, "", "", "", "", "", "");
         long id = userDao.insertUser(user);
 
         if (id != -1) {
-            // Успешная регистрация
-            handleSuccessfulRegistration(id, login);
+            // Успешная регистрация - автоматически входим
+            User newUser = userDao.getUserById(id);
+            if (newUser != null) {
+                // Создаем сессию (по умолчанию без rememberMe)
+                sessionManager.createSession(id, login, false);
+
+                showToast("Регистрация успешна! Добро пожаловать, " + login + "!");
+
+                // Переход на главную активность
+                navigateToMainActivity();
+            }
         } else {
             showToast("Ошибка при регистрации");
         }
-    }
-
-    /**
-     * Обрабатывает успешную регистрацию пользователя.
-     * @param userId ID зарегистрированного пользователя
-     * @param login Логин пользователя
-     */
-    private void handleSuccessfulRegistration(long userId, String login) {
-        // Сохраняем ID пользователя в SharedPreferences
-        sharedPreferences.edit()
-                .putLong("user_id", userId)
-                .putString("user_login", login)
-                .apply();
-
-        showToast("Регистрация успешна! Добро пожаловать, " + login + "!");
-
-        // Переход на главную активность
-        startActivity(new Intent(this, MainActivity.class));
-        finish();
     }
 
     /**
@@ -152,6 +143,16 @@ public class RegisterActivity extends AppCompatActivity {
      */
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * Переход на главную активность
+     */
+    private void navigateToMainActivity() {
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        finish();
     }
 
     /**
