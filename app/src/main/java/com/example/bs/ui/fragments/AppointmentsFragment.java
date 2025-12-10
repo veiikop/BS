@@ -1,7 +1,5 @@
 package com.example.bs.ui.fragments;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -12,7 +10,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.bs.R;
@@ -25,14 +22,13 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class AppointmentsFragment extends Fragment {
+public class AppointmentsFragment extends BaseFragment {
 
     private RecyclerView recyclerView;
     private AppointmentAdapter adapter;
     private TextView textEmpty;
     private Spinner spinnerFilter;
     private AppointmentDao appointmentDao;
-    private long currentUserId = -1;
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -51,27 +47,19 @@ public class AppointmentsFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerView.setAdapter(adapter);
 
-        // получение ID текущего пользователя из SharedPreferences
-        getCurrentUserId();
-
-        setupFilter();
-
-        // загрузка записей только если пользователь авторизован
-        if (currentUserId != -1) {
-            loadAppointments("all");
-        } else {
+        // Проверка авторизации через BaseFragment
+        if (!isUserLoggedIn) {
             showNotAuthorizedMessage();
+            textEmpty.setVisibility(View.VISIBLE);
+            textEmpty.setText("Пожалуйста, войдите в систему");
+            adapter.setAppointments(new ArrayList<>());
+            return view;
         }
 
-        return view;
-    }
+        setupFilter();
+        loadAppointments("all");
 
-    /**
-     * Получает ID текущего пользователя из SharedPreferences
-     */
-    private void getCurrentUserId() {
-        SharedPreferences sharedPreferences = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
-        currentUserId = sharedPreferences.getLong("user_id", -1);
+        return view;
     }
 
     private void setupFilter() {
@@ -96,8 +84,11 @@ public class AppointmentsFragment extends Fragment {
     }
 
     private void loadAppointments(String filter) {
-        if (currentUserId == -1) {
+        if (!isUserLoggedIn || currentUserId == -1) {
             showNotAuthorizedMessage();
+            textEmpty.setVisibility(View.VISIBLE);
+            textEmpty.setText("Пожалуйста, войдите в систему");
+            adapter.setAppointments(new ArrayList<>());
             return;
         }
 
@@ -105,7 +96,7 @@ public class AppointmentsFragment extends Fragment {
             // обновление статуса
             appointmentDao.updateStatusBasedOnTime();
 
-            //  метод для получения записей пользователя
+            // метод для получения записей пользователя
             List<Appointment> allAppointments = appointmentDao.getAppointmentsByUserId(currentUserId);
             List<Appointment> filtered = new ArrayList<>();
 
@@ -138,22 +129,16 @@ public class AppointmentsFragment extends Fragment {
         });
     }
 
-    /**
-     * Показывает сообщение о том, что пользователь не авторизован
-     */
-    private void showNotAuthorizedMessage() {
-        textEmpty.setVisibility(View.VISIBLE);
-        textEmpty.setText("Пожалуйста, войдите в систему");
-        adapter.setAppointments(new ArrayList<>());
-    }
-
     @Override
     public void onResume() {
         super.onResume();
-        // При возобновлении фрагмента обновляем ID пользователя и загружаем записи
-        getCurrentUserId();
-        if (currentUserId != -1) {
+        // При возобновлении фрагмента проверяем сессию (уже делается в BaseFragment)
+        if (isUserLoggedIn && currentUserId != -1) {
             loadAppointments(getCurrentFilter());
+        } else {
+            textEmpty.setVisibility(View.VISIBLE);
+            textEmpty.setText("Пожалуйста, войдите в систему");
+            adapter.setAppointments(new ArrayList<>());
         }
     }
 

@@ -1,7 +1,6 @@
 package com.example.bs.ui.fragments;
 
 import android.app.AlertDialog;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,7 +10,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import com.example.bs.R;
 import com.example.bs.db.AppointmentDao;
 import com.example.bs.db.MasterDao;
@@ -22,30 +20,20 @@ import com.example.bs.model.Service;
 import com.example.bs.util.NotificationHelper;
 import com.google.android.material.button.MaterialButton;
 
-/**
- * Фрагмент для подтверждения записи.
- * Отображает детали выбранной услуги, мастера, даты и времени.
- * Позволяет подтвердить создание записи с предотвращением дубликатов.
- */
-public class BookingConfirmationFragment extends Fragment {
+public class BookingConfirmationFragment extends BaseFragment {
 
     private long serviceId; // ID выбранной услуги
     private String dateTime; // Дата и время записи (yyyy-MM-dd HH:mm)
     private long masterId; // ID выбранного мастера
-    private long currentUserId = -1;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        // Инфлейтим разметку фрагмента
         return inflater.inflate(R.layout.fragment_booking_confirmation, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        //  ID текущего пользователя
-        getCurrentUserId();
 
         // аргументы из бандла
         if (getArguments() != null) {
@@ -54,8 +42,8 @@ public class BookingConfirmationFragment extends Fragment {
             masterId = getArguments().getLong("master_id");
         }
 
-        // проверка авторизацию
-        if (currentUserId == -1) {
+        // проверка авторизацию через BaseFragment
+        if (!isUserLoggedIn) {
             Toast.makeText(requireContext(), "Ошибка: пользователь не авторизован", Toast.LENGTH_SHORT).show();
             requireActivity().getSupportFragmentManager().popBackStack();
             return;
@@ -91,14 +79,6 @@ public class BookingConfirmationFragment extends Fragment {
                     .setNegativeButton("Нет", null)
                     .show();
         });
-    }
-
-    /**
-     * Получает ID текущего пользователя из SharedPreferences
-     */
-    private void getCurrentUserId() {
-        SharedPreferences sharedPreferences = requireContext().getSharedPreferences("user_prefs", android.content.Context.MODE_PRIVATE);
-        currentUserId = sharedPreferences.getLong("user_id", -1);
     }
 
     /**
@@ -158,7 +138,7 @@ public class BookingConfirmationFragment extends Fragment {
 
         // Создаём запись
         Appointment appointment = new Appointment();
-        appointment.setUserId(currentUserId); // реальный ID пользователя
+        appointment.setUserId(currentUserId); // реальный ID пользователя из BaseFragment
         appointment.setServiceId(serviceId);
         appointment.setMasterId(masterId);
         appointment.setDateTime(dateTime);

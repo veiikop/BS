@@ -2,9 +2,7 @@ package com.example.bs.ui.fragments;
 
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -23,7 +21,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SwitchCompat;
-import androidx.fragment.app.Fragment;
 import com.example.bs.R;
 import com.example.bs.db.UserDao;
 import com.example.bs.model.User;
@@ -36,15 +33,9 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 
-/**
- * Фрагмент профиля пользователя
- */
-public class ProfileFragment extends Fragment {
+public class ProfileFragment extends BaseFragment {
 
     private UserDao userDao;
-    private SharedPreferences sharedPreferences;
-    private long currentUserId;
-
     private TextView textLogin;
     private EditText editName, editSurname, editBirthdate, editPhone;
     private RadioGroup radioGender;
@@ -67,22 +58,21 @@ public class ProfileFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        userDao = new UserDao(requireContext());
-        sharedPreferences = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
-        currentUserId = sharedPreferences.getLong("user_id", -1);
-
-        if (currentUserId == -1) {
-            showToast("Ошибка: пользователь не авторизован");
+        // Проверяем авторизацию через BaseFragment
+        if (!isUserLoggedIn) {
+            Toast.makeText(requireContext(), "Ошибка: пользователь не авторизован", Toast.LENGTH_SHORT).show();
             navigateToLogin();
             return;
         }
 
+        userDao = new UserDao(requireContext());
+
         initViews(view);
         setupDatePicker();
         setupPhoneValidation();
-        setupNotificationSettings(view);
         loadUserData();
         setupListeners();
+        setupNotificationSettings();
     }
 
     /**
@@ -110,7 +100,7 @@ public class ProfileFragment extends Fragment {
     /**
      * Настраивает Switch уведомлений
      */
-    private void setupNotificationSettings(View view) {
+    private void setupNotificationSettings() {
         switchNotifications.setOnCheckedChangeListener(null);
 
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
@@ -169,11 +159,6 @@ public class ProfileFragment extends Fragment {
                                 NotificationHelper.openNotificationSettings(requireContext());
                             })
                             .setNegativeButton("Позже", null)
-                            .setNeutralButton("Не показывать снова", (dialog, which) -> {
-                                SharedPreferences prefs = requireContext()
-                                        .getSharedPreferences("app_settings", Context.MODE_PRIVATE);
-                                prefs.edit().putBoolean("dont_show_notification_warning", true).apply();
-                            })
                             .show();
                 });
             }
@@ -186,7 +171,7 @@ public class ProfileFragment extends Fragment {
     private void setupDatePicker() {
         editBirthdate.setOnClickListener(v -> showDatePickerDialog());
 
-        //  возможность ручного ввода с валидацией
+        // возможность ручного ввода с валидацией
         editBirthdate.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -243,7 +228,7 @@ public class ProfileFragment extends Fragment {
                 radioFemale.setChecked(true);
             }
         } else {
-            showToast("Ошибка загрузки данных");
+            Toast.makeText(requireContext(), "Ошибка загрузки данных", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -414,26 +399,25 @@ public class ProfileFragment extends Fragment {
     }
 
     /**
-     * Выход из аккаунта
+     * Выход из аккаунта с полной очисткой сессии
      */
     private void logout() {
         new AlertDialog.Builder(requireContext())
                 .setTitle("Выход")
-                .setMessage("Вы уверены, что хотите выйти?")
-                .setPositiveButton("Да", (dialog, which) -> {
-                    sharedPreferences.edit().clear().apply();
+                .setMessage("Вы уверены, что хотите выйти?\n\n" +
+                        "Все данные сессии будут удалены.")
+                .setPositiveButton("Выйти", (dialog, which) -> {
+                    // Полностью очищаем сессию
+                    sessionManager.clearSession();
+
+                    // Показываем сообщение
+                    Toast.makeText(requireContext(), "Вы вышли из аккаунта", Toast.LENGTH_SHORT).show();
+
+                    // Переходим на экран логина
                     navigateToLogin();
                 })
-                .setNegativeButton("Нет", null)
+                .setNegativeButton("Отмена", null)
                 .show();
-    }
-
-    /**
-     * Переход на экран логина
-     */
-    private void navigateToLogin() {
-        startActivity(new Intent(requireContext(), LoginActivity.class));
-        requireActivity().finish();
     }
 
     /**
@@ -442,6 +426,7 @@ public class ProfileFragment extends Fragment {
     private void showToast(String message) {
         Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
     }
+
     /**
      * Обновляет состояние Switch при возвращении на фрагмент
      */
