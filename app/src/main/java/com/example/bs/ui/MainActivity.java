@@ -11,6 +11,8 @@ import com.example.bs.ui.fragments.CatalogFragment;
 import com.example.bs.ui.fragments.HomeFragment;
 import com.example.bs.ui.fragments.ProfileFragment;
 import com.example.bs.util.SessionManager;
+import com.example.bs.util.NotificationHelper;
+import com.example.bs.util.NotificationScheduler;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 /**
@@ -26,6 +28,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Создаем канал уведомлений
+        NotificationHelper.createNotificationChannel(this);
+        // Запускаем планировщик уведомлений
+        NotificationScheduler.scheduleReminderWork(this);
         // Инициализация менеджера сессий
         sessionManager = new SessionManager(this);
 
