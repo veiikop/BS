@@ -34,6 +34,13 @@ import java.util.Calendar;
 import java.util.Locale;
 
 public class ProfileFragment extends BaseFragment {
+    // константы для ключей
+    private static final String KEY_NAME = "name";
+    private static final String KEY_SURNAME = "surname";
+    private static final String KEY_BIRTHDATE = "birthdate";
+    private static final String KEY_PHONE = "phone";
+    private static final String KEY_GENDER = "gender";
+    private static final String KEY_NOTIFICATIONS = "notifications";
 
     private UserDao userDao;
     private TextView textLogin;
@@ -455,8 +462,23 @@ public class ProfileFragment extends BaseFragment {
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
 
+        if (editName != null) {
+            outState.putString(KEY_NAME, editName.getText().toString());
+        }
+        if (editSurname != null) {
+            outState.putString(KEY_SURNAME, editSurname.getText().toString());
+        }
+        if (editBirthdate != null) {
+            outState.putString(KEY_BIRTHDATE, editBirthdate.getText().toString());
+        }
+        if (editPhone != null) {
+            outState.putString(KEY_PHONE, editPhone.getText().toString());
+        }
+        if (radioGender != null) {
+            outState.putString(KEY_GENDER, getSelectedGender());
+        }
         if (switchNotifications != null) {
-            outState.putBoolean("notification_switch_state", switchNotifications.isChecked());
+            outState.putBoolean(KEY_NOTIFICATIONS, switchNotifications.isChecked());
         }
     }
 
@@ -467,18 +489,30 @@ public class ProfileFragment extends BaseFragment {
     public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
         super.onViewStateRestored(savedInstanceState);
 
-        if (savedInstanceState != null && switchNotifications != null) {
-            boolean savedState = savedInstanceState.getBoolean("notification_switch_state", true);
-
-            switchNotifications.setOnCheckedChangeListener(null);
-            switchNotifications.setChecked(savedState);
-
-            boolean actualState = NotificationScheduler.areNotificationsEnabled(requireContext());
-            if (savedState != actualState) {
-                switchNotifications.setChecked(actualState);
+        if (savedInstanceState != null) {
+            if (editName != null && savedInstanceState.containsKey(KEY_NAME)) {
+                editName.setText(savedInstanceState.getString(KEY_NAME));
             }
-
-            setupSwitchListener();
+            if (editSurname != null && savedInstanceState.containsKey(KEY_SURNAME)) {
+                editSurname.setText(savedInstanceState.getString(KEY_SURNAME));
+            }
+            if (editBirthdate != null && savedInstanceState.containsKey(KEY_BIRTHDATE)) {
+                editBirthdate.setText(savedInstanceState.getString(KEY_BIRTHDATE));
+            }
+            if (editPhone != null && savedInstanceState.containsKey(KEY_PHONE)) {
+                editPhone.setText(savedInstanceState.getString(KEY_PHONE));
+            }
+            if (radioGender != null && savedInstanceState.containsKey(KEY_GENDER)) {
+                String gender = savedInstanceState.getString(KEY_GENDER);
+                if ("мужской".equals(gender)) {
+                    radioMale.setChecked(true);
+                } else if ("женский".equals(gender)) {
+                    radioFemale.setChecked(true);
+                }
+            }
+            if (switchNotifications != null && savedInstanceState.containsKey(KEY_NOTIFICATIONS)) {
+                switchNotifications.setChecked(savedInstanceState.getBoolean(KEY_NOTIFICATIONS));
+            }
         }
     }
 }
